@@ -16,7 +16,7 @@
       localFirstCopy:"Your map stays on this device.",settings:"Settings",open:"Open",save:"Save",askAI:"Ask AI",layout:"Layout",
       theme:"Theme",notes:"Notes",fit:"Fit",selectedNode:"Selected node",nodeText:"Node text",nodeNote:"Note",branchColor:"Branch color",
       priority:"Priority",collapse:"Collapse",delete:"Delete",aiActions:"AI actions",expandNode:"Expand this node",rewriteNode:"Rewrite clearly",
-      generateQuestions:"Generate questions",nodes:"Nodes",depth:"Depth",branches:"Branches",canvasHintTitle:"Start with one thought.",
+      generateQuestions:"Generate questions",collapseAll:"Collapse all",expandAll:"Expand all",duplicateNode:"Duplicate branch",about:"About Parin MindMap",aboutBuiltBy:"This software was built by Parin Mashalchian with the help and collaboration of ChatGPT.",openGithub:"Open project on GitHub",nodes:"Nodes",depth:"Depth",branches:"Branches",canvasHintTitle:"Start with one thought.",
       canvasHintCopy:"Press Tab to branch, Enter to create a sibling, or ask AI to build the structure.",aiModalCopy:"Turn rough ideas into structured thinking.",
       aiPrompt:"Prompt",provider:"Provider",model:"Model",endpoint:"Endpoint",apiKey:"API key",aiResult:"AI result",applyToMap:"Apply to map",
       commercialNote:"Use a model/provider whose license and service terms permit your commercial use.",runAI:"Run AI",exportCopy:"Create polished documents from your map.",
@@ -32,7 +32,7 @@
       localFirstCopy:"نقشه شما روی همین دستگاه می‌ماند.",settings:"تنظیمات",open:"باز کردن",save:"ذخیره",askAI:"پرسش از هوش مصنوعی",layout:"چیدمان",
       theme:"پوسته",notes:"یادداشت‌ها",fit:"جای‌گیری",selectedNode:"گره انتخاب‌شده",nodeText:"متن گره",nodeNote:"یادداشت",branchColor:"رنگ شاخه",
       priority:"اولویت",collapse:"جمع کردن",delete:"حذف",aiActions:"عملیات هوش مصنوعی",expandNode:"گسترش این گره",rewriteNode:"بازنویسی حرفه‌ای",
-      generateQuestions:"ساخت پرسش",nodes:"گره",depth:"عمق",branches:"شاخه",canvasHintTitle:"با یک ایده شروع کن.",
+      generateQuestions:"ساخت پرسش",collapseAll:"جمع‌کردن همه",expandAll:"بازکردن همه",duplicateNode:"کپی شاخه",about:"درباره پرین مایندمپ",aboutBuiltBy:"این نرم‌افزار توسط پرین مشعلچیان با کمک و همراهی ChatGPT ساخته شده است.",openGithub:"باز کردن پروژه در GitHub",nodes:"گره",depth:"عمق",branches:"شاخه",canvasHintTitle:"با یک ایده شروع کن.",
       canvasHintCopy:"Tab برای شاخه جدید، Enter برای هم‌سطح و AI برای ساخت خودکار ساختار.",aiModalCopy:"ایده‌های خام را به ساختار قابل‌فهم تبدیل کن.",
       aiPrompt:"دستور",provider:"ارائه‌دهنده",model:"مدل",endpoint:"نشانی API",apiKey:"کلید API",aiResult:"نتیجه AI",applyToMap:"اعمال روی نقشه",
       commercialNote:"برای استفاده تجاری، مدل و سرویس انتخابی باید شرایط و مجوز مناسب داشته باشند.",runAI:"اجرای AI",exportCopy:"نقشه را به اسناد حرفه‌ای تبدیل کن.",
@@ -90,7 +90,37 @@
     {id:"scenario",icon:"◌",title:"Scenario analysis",hint:"What-if branches"},
     {id:"persona",icon:"◎",title:"Persona map",hint:"Users, needs, pain points"},
     {id:"rootcause",icon:"◉",title:"Root-cause analysis",hint:"5 Whys & cause chains"},
-    {id:"mindset",icon:"◐",title:"Counter-arguments",hint:"Challenge assumptions"}
+    {id:"mindset",icon:"◐",title:"Counter-arguments",hint:"Challenge assumptions"},
+{id:"okr",icon:"◎",title:"OKR planner",hint:"Objectives & key results"},
+    {id:"smart",icon:"✓",title:"SMART goals",hint:"Turn ideas into measurable goals"},
+    {id:"eisenhower",icon:"▤",title:"Eisenhower matrix",hint:"Urgent vs important"},
+    {id:"pestel",icon:"◫",title:"PESTEL analysis",hint:"Macro-environment scan"},
+    {id:"raci",icon:"👥",title:"RACI map",hint:"Roles & accountability"},
+    {id:"userstories",icon:"♡",title:"User stories",hint:"As a user… acceptance-ready"},
+    {id:"requirements",icon:"≣",title:"Requirements map",hint:"Functional & non-functional requirements"},
+    {id:"acceptance",icon:"✓",title:"Acceptance criteria",hint:"Definition of done"},
+    {id:"productbrief",icon:"▥",title:"Product brief",hint:"Problem, audience, value, scope"},
+    {id:"featurematrix",icon:"⊞",title:"Feature matrix",hint:"Compare features & priorities"},
+    {id:"testcases",icon:"☑",title:"Test cases",hint:"QA scenarios from the map"},
+    {id:"bugtriage",icon:"⚑",title:"Bug triage",hint:"Severity, impact, next action"},
+    {id:"sop",icon:"≋",title:"SOP generator",hint:"Repeatable step-by-step procedure"},
+    {id:"faq",icon:"?",title:"FAQ generator",hint:"Questions & clear answers"},
+    {id:"glossary",icon:"Aa",title:"Glossary builder",hint:"Terms, definitions & examples"},
+    {id:"lesson",icon:"◌",title:"Lesson plan",hint:"Learning objectives & activities"},
+    {id:"thesis",icon:"§",title:"Thesis outline",hint:"Arguments, evidence & chapters"},
+    {id:"debate",icon:"⇄",title:"Debate map",hint:"Claims, evidence & rebuttals"},
+    {id:"counterexamples",icon:"◇",title:"Counterexamples",hint:"Stress-test ideas"},
+    {id:"explain",icon:"?",title:"Explain simply",hint:"Plain-language explanation"},
+    {id:"audience",icon:"◎",title:"Audience adaptation",hint:"Rewrite for a specific audience"},
+    {id:"assumptions",icon:"△",title:"Assumption audit",hint:"Hidden assumptions & evidence"},
+    {id:"qa",icon:"⌕",title:"Quality review",hint:"Clarity, completeness & consistency"},
+    {id:"cleanup",icon:"✧",title:"Map cleanup",hint:"Duplicates, clutter & weak labels"},
+    {id:"merge",icon:"⊕",title:"Merge duplicate ideas",hint:"Consolidate overlapping branches"},
+    {id:"nodeSummary",icon:"≡",title:"Branch snapshot",hint:"Summarize the selected branch"},
+    {id:"branchPlan",icon:"➜",title:"Branch execution plan",hint:"Turn one branch into steps"},
+    {id:"naming",icon:"T",title:"Naming assistant",hint:"Names, titles & terminology"},
+    {id:"promptRefine",icon:"✦",title:"Prompt optimizer",hint:"Improve your next AI request"}
+
   ];\n\n  const el = id => document.getElementById(id);
   const $all = sel => Array.from(document.querySelectorAll(sel));
   const clone = o => JSON.parse(JSON.stringify(o));
@@ -361,6 +391,39 @@
     if(!hit) return;
     if(!hit.parent){toast("The root node cannot be deleted.");return;}
     mutate(()=>{ hit.parent.children=hit.parent.children.filter(c=>c.id!==hit.node.id); state.selected=hit.parent.id; });
+  }
+
+
+  function setAllCollapsed(collapsed){
+    if(!state.root)return;
+    mutate(()=>{
+      function walk(n){n.collapsed=Boolean(collapsed);n.children.forEach(walk);}
+      walk(state.root);
+    });
+    toast(collapsed ? "All branches collapsed" : "All branches expanded");
+  }
+
+  function duplicateSelected(){
+    const hit=findNode(state.selected);
+    if(!hit||!hit.node)return;
+    const copy=clone(hit.node);
+    const remap=new Map();
+    function rekey(n){
+      const old=n.id; n.id=uid(); remap.set(old,n.id);
+      n.manualX=null; n.manualY=null;
+      n.children.forEach(rekey);
+    }
+    rekey(copy);
+    mutate(()=>{
+      if(hit.parent){
+        const idx=hit.parent.children.findIndex(c=>c.id===hit.node.id);
+        hit.parent.children.splice(idx+1,0,copy);
+      }else{
+        state.root.children.push(copy);
+      }
+      state.selected=copy.id;
+    });
+    toast("Branch duplicated");
   }
 
   function editNode(id) {
@@ -696,7 +759,36 @@
       scenario:"Create what-if scenarios and show how the map changes under each scenario.",
       persona:"Build personas from the map: goals, needs, pain points, behaviors, and objections.",
       rootcause:"Perform root-cause analysis using 5 Whys and cause-effect chains.",
-      mindset:"Challenge assumptions and produce credible counter-arguments, edge cases, and failure modes."
+      mindset:"Challenge assumptions and produce credible counter-arguments, edge cases, and failure modes.",
+okr:"Create a practical OKR plan: objectives, measurable key results, initiatives, owners, and review cadence.",
+      smart:"Rewrite the map as SMART goals with specific, measurable, achievable, relevant, time-bound outcomes.",
+      eisenhower:"Classify actionable items into an Eisenhower matrix: urgent/important, urgent/not important, not urgent/important, neither.",
+      pestel:"Perform a PESTEL analysis and connect external factors back to the current map.",
+      raci:"Build a RACI responsibility map for the major workstreams.",
+      userstories:"Convert the major branches into user stories with concise acceptance-ready outcomes.",
+      requirements:"Extract functional and non-functional requirements, constraints, assumptions, and open questions.",
+      acceptance:"Generate clear acceptance criteria and definition-of-done checks for the major deliverables.",
+      productbrief:"Create a concise product brief covering problem, audience, value proposition, scope, risks, and next steps.",
+      featurematrix:"Create a feature comparison matrix with value, effort, dependency, and priority considerations.",
+      testcases:"Generate QA test cases, edge cases, expected results, and traceability to the map.",
+      bugtriage:"Turn the map into a bug-triage structure with severity, impact, reproduction needs, owners, and next actions.",
+      sop:"Turn the map into a repeatable SOP with prerequisites, steps, decision points, exceptions, and verification.",
+      faq:"Generate a useful FAQ with clear questions and answers grounded only in the map.",
+      glossary:"Build a glossary of important terms, concise definitions, and examples from the map.",
+      lesson:"Create a lesson plan with objectives, sequence, activities, practice, and assessment.",
+      thesis:"Turn the map into an academic thesis outline with argument flow, evidence needs, and chapter structure.",
+      debate:"Build a debate map with claims, supporting evidence, counterclaims, rebuttals, and unresolved questions.",
+      counterexamples:"Stress-test the map with credible counterexamples, edge cases, and situations where the assumptions fail.",
+      explain:"Explain the selected concept in plain language, then provide a more technical explanation and examples.",
+      audience:"Adapt the map for the requested audience while preserving factual meaning and structure.",
+      assumptions:"Audit the map for hidden assumptions, unsupported leaps, dependencies, and evidence gaps.",
+      qa:"Review the map for clarity, completeness, consistency, duplicates, ambiguity, and missing decisions.",
+      cleanup:"Propose a cleanup pass that merges duplicates, improves weak labels, reduces clutter, and preserves meaning.",
+      merge:"Identify overlapping branches and propose a cleaner merged structure without deleting information silently.",
+      nodeSummary:"Summarize the selected branch: purpose, key points, open questions, risks, and next actions.",
+      branchPlan:"Turn the selected branch into an execution plan with tasks, dependencies, checkpoints, and done criteria.",
+      naming:"Generate concise names/titles for the major branches and explain the naming pattern.",
+      promptRefine:"Rewrite the user's intended AI request into a clearer, more precise prompt with explicit output requirements."
     };
     el("aiPrompt").value=defaults[id]||"";
     el("aiOutput").classList.add("hidden");
@@ -944,7 +1036,7 @@ ${context}`;
   }
 
   function saveSettings(){
-    const s={provider:el("settingsProvider").value,model:el("settingsModel").value.trim()||"mistral",endpoint:el("settingsEndpoint").value.trim(),key:el("settingsKey").value};
+    const s={provider:el("settingsProvider").value,model:el("settingsModel").value.trim()||"parin-gemma3-assistant",endpoint:el("settingsEndpoint").value.trim(),key:el("settingsKey").value};
     localStorage.setItem("parin.ai",JSON.stringify(s));
     el("aiProvider").value=s.provider;el("aiModel").value=s.model;el("aiEndpoint").value=s.endpoint;el("aiKey").value=s.key;
     setTheme(el("themeSelect").value);setLayout(el("layoutSelect").value);setLanguage(el("settingsLanguage").value);setAIEnabled(el("settingsAIEnabled").checked);
@@ -961,6 +1053,7 @@ ${context}`;
     el("newMapBtn").addEventListener("click",newMap);el("openBtn").addEventListener("click",openFile);el("saveBtn").addEventListener("click",saveFile);
     el("undoBtn").addEventListener("click",undo);el("redoBtn").addEventListener("click",redo);el("addChildBtn").addEventListener("click",addChild);
     el("addSiblingBtn").addEventListener("click",addSibling);el("deleteNodeBtn").addEventListener("click",deleteSelected);el("focusBtn").addEventListener("click",fitMap);
+    el("collapseAllBtn").addEventListener("click",()=>setAllCollapsed(true));el("expandAllBtn").addEventListener("click",()=>setAllCollapsed(false));el("duplicateNodeBtn").addEventListener("click",duplicateSelected);
     el("fitBtn").addEventListener("click",fitMap);el("zoomInBtn").addEventListener("click",()=>zoomBy(.1));el("zoomOutBtn").addEventListener("click",()=>zoomBy(-.1));
     el("aiTopBtn").addEventListener("click",openCopilot);
     el("closeCopilot").addEventListener("click",closeCopilot);
@@ -968,7 +1061,7 @@ ${context}`;
     el("copilotSend").addEventListener("click",runCopilot);
     el("copilotInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();runCopilot();}});
     $all("[data-copilot-task]").forEach(b=>b.addEventListener("click",()=>{
-      const prompts={map:"Build a complete mind map from my current topic.",expand:"Expand the selected node with useful branches.",gaps:"Find knowledge gaps and missing branches.",plan:"Turn this map into an actionable plan."};
+      const prompts={map:"Build a complete mind map from my current topic.",expand:"Expand the selected node with useful branches.",gaps:"Find knowledge gaps and missing branches.",plan:"Turn this map into an actionable plan.",summary:"Summarize my map and list next actions.",swot:"Run a SWOT analysis of my map.",study:"Create a study plan from my map.",roadmap:"Create a roadmap with phases and milestones.",requirements:"Extract clear functional and non-functional requirements.",okr:"Create useful OKRs from my map."};
       el("copilotInput").value=prompts[b.dataset.copilotTask]||"";
       el("copilotInput").focus();
     }));
@@ -985,12 +1078,13 @@ ${context}`;
     el("approveAllBtn").addEventListener("click",()=>applyApprovedAgentActions("batch"));
     el("copilotSettings").addEventListener("click",()=>openModal("settingsModal"));
     el("settingsAIEnabled").addEventListener("change",e=>setAIEnabled(e.target.checked));el("runAIBtn").addEventListener("click",runAI);el("applyAIResult").addEventListener("click",applyAIResult);
+    el("aboutGithubBtn").addEventListener("click",()=>window.parinAPI.openExternal("https://github.com/Parin-M/Parin-MindMap-EXE"));
     el("settingsBtn").addEventListener("click",()=>{
       el("settingsAIEnabled").checked=state.aiEnabled;
       openModal("settingsModal");
     });el("saveSettingsBtn").addEventListener("click",saveSettings);
     el("languageSelect").addEventListener("change",e=>setLanguage(e.target.value));el("settingsLanguage").addEventListener("change",e=>setLanguage(e.target.value));
-    el("themeBtn").addEventListener("click",()=>{setTheme(state.theme==="aurora"?"graphite":state.theme==="graphite"?"paper":"aurora")});
+    el("themeBtn").addEventListener("click",()=>{const themes=["aurora","midnight","ocean","forest","sunset","violet","graphite","paper","rose","cyber","nordic","emerald","mono"];const i=themes.indexOf(state.theme);setTheme(themes[(i<0?0:i+1)%themes.length]);});
     el("layoutBtn").addEventListener("click",()=>{const n={radial:"right",right:"left",left:"down",down:"radial"};setLayout(n[state.layout]||"radial")});
     el("notesBtn").addEventListener("click",()=>{state.showNotes=!state.showNotes;renderMapOnly()});
     el("moreBtn").addEventListener("click",()=>toast("More commands are coming to the command palette."));
