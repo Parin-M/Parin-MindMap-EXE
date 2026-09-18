@@ -564,6 +564,55 @@ Existing map:
 ${context}`;
   }
 
+  async function runCopilot(){
+    if(!state.aiEnabled){toast("AI is disabled.");return;}
+    const input=el("copilotInput");
+    const textIn=input.value.trim();
+    if(!textIn)return;
+    appendCopilot("user",textIn);
+    input.value="";
+    const endpoint=el("aiEndpoint").value.trim();
+    const apiKey=el("aiKey").value.trim();
+    const model=el("aiModel").value.trim()||"Phi-3-mini-4k-instruct";
+    const selected=findNode(state.selected)?.node;
+    const context=mapAsOutline();
+    const useSel=el("copilotUseSelection")?.checked;
+    const contextText=(useSel&&selected)
+      ? "Selected node: "+selected.label+"\nSelected note: "+(selected.note||"")+"\n\n"
+      : "";
+    const prompt="You are Parin Copilot, an expert mind-map and productivity assistant. Work with the current map and give actionable output. Interface language: "+(LANGS[state.lang]?.label||"English")+".\n\n"+
+      contextText+"Current map:\n"+context+"\n\nUser request:\n"+textIn+
+      "\n\nWhen the request implies a structural map edit, prefer compact JSON in this form:\n"+
+      '{"action":"add_children","children":[{"label":"...","note":""},{"label":"...","note":""}]}\nFor other requests, answer naturally.';
+    try{
+      const data=await window.parinAPI.aiRequest({
+        endpoint,apiKey,
+        local:el("aiProvider").value==="local",
+        body:{model,messages:[
+          {role:"system",content:"You are Parin Copilot. Be precise, concise, and practical. Never invent sources."},
+          {role:"user",content:prompt}
+        ],temperature:.3}
+      });
+      const answer=String(data?.choices?.[0]?.message?.content||data?.output_text||data?.response||JSON.stringify(data,null,2));
+      appendCopilot("assistant",answer);
+      try{
+        const parsed=extractJson(answer);
+        if(parsed?.action==="add_children"&&Array.isArray(parsed.children)){
+          const hit=findNode(state.selected);
+          if(hit){
+            mutate(()=>{
+              hit.node.children.push(...parsed.children.map(x=>jsonToNode(x,1)));
+              hit.node.collapsed=false;
+            });
+            appendCopilot("assistant","✓ Added the suggested branches to the selected node.");
+          }
+        }
+      }catch{}
+    }catch(e){
+      appendCopilot("assistant","AI error: "+(e.message||"request failed"));
+    }
+  }
+
   async function runAI(){
     const endpoint=el("aiEndpoint").value.trim();
     const apiKey=el("aiKey").value.trim();
