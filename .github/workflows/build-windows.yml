@@ -194,9 +194,13 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
-      - name: Checkout current llama.cpp
+      - name: Checkout llama.cpp Windows 7 compatible revision
         shell: pwsh
-        run: git clone --depth 1 https://github.com/ggml-org/llama.cpp.git llama-src
+        run: |
+          git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git llama-src
+          Set-Location llama-src
+          git fetch --no-tags origin refs/pull/8208/head
+          git checkout FETCH_HEAD
 
       - name: Syntax check
         shell: pwsh
@@ -216,6 +220,8 @@ jobs:
             -DGGML_VULKAN=OFF `
             -DLLAMA_CURL=OFF `
             -DLLAMA_BUILD_SERVER=ON `
+            -DLLAMA_BUILD_EXAMPLES=ON `
+            -DLLAMA_BUILD_TOOLS=OFF `
             -DLLAMA_BUILD_TESTS=OFF `
             -DGGML_WIN_VER=_WIN32_WINNT_WIN7 `
             -DCMAKE_C_FLAGS="/D_WIN32_WINNT=0x0601 /DWINVER=0x0601" `
