@@ -23,7 +23,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm"
 
       - name: Install Electron dependencies
         run: npm install --no-audit --no-fund
@@ -31,7 +30,7 @@ jobs:
       - name: Checkout llama.cpp Windows 7 compatible revision
         shell: pwsh
         run: |
-          git clone --depth 1 https://github.com/ggml-org/llama.cpp.git llama-src
+          git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git llama-src
           Set-Location llama-src
           git fetch --no-tags origin $env:LLAMA_REF
           git checkout $env:LLAMA_REF
