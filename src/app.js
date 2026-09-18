@@ -52,20 +52,46 @@
 
   const AI_TASKS = [
     {id:"map",icon:"✦",title:"Generate a full mind map",hint:"Idea → structured map"},
+    {id:"outline",icon:"☷",title:"Turn text into a mind map",hint:"Paste notes, get structure"},
     {id:"expand",icon:"＋",title:"Expand selected node",hint:"Add useful child branches"},
+    {id:"subtopics",icon:"⌘",title:"Generate subtopics",hint:"Find missing branches"},
     {id:"rewrite",icon:"Aa",title:"Rewrite the map clearly",hint:"Make labels concise & precise"},
+    {id:"simplify",icon:"≈",title:"Simplify complex ideas",hint:"Reduce cognitive load"},
     {id:"summary",icon:"≋",title:"Summarize the map",hint:"Executive / study summary"},
+    {id:"executive",icon:"▤",title:"Executive brief",hint:"Key points for decision-makers"},
     {id:"brainstorm",icon:"✧",title:"Deep brainstorm",hint:"Angles, risks, opportunities"},
+    {id:"creative",icon:"✺",title:"Creative ideation",hint:"Novel concepts & combinations"},
     {id:"swot",icon:"▦",title:"SWOT analysis",hint:"Strengths, weaknesses, opportunities"},
+    {id:"risk",icon:"⚠",title:"Risk analysis",hint:"Risks, causes, mitigations"},
+    {id:"decision",icon:"◇",title:"Decision tree",hint:"Options, criteria, outcomes"},
+    {id:"proscons",icon:"±",title:"Pros & cons",hint:"Trade-offs by branch"},
+    {id:"compare",icon:"⇄",title:"Compare alternatives",hint:"Criteria, trade-offs, risks"},
     {id:"plan",icon:"☷",title:"Action plan",hint:"Steps, owners, dependencies"},
+    {id:"roadmap",icon:"➜",title:"Roadmap generator",hint:"Milestones & phases"},
     {id:"study",icon:"⌘",title:"Study plan",hint:"Topics, recall, practice"},
+    {id:"quiz",icon:"?",title:"Quiz generator",hint:"Questions from your map"},
+    {id:"flashcards",icon:"▣",title:"Flashcards",hint:"Active-recall cards"},
     {id:"questions",icon:"?",title:"Research questions",hint:"High-value questions"},
     {id:"fivew",icon:"5",title:"5W1H breakdown",hint:"Who, what, when, where, why, how"},
     {id:"meeting",icon:"◫",title:"Meeting structure",hint:"Agenda → decisions → actions"},
-    {id:"compare",icon:"⇄",title:"Compare alternatives",hint:"Criteria, trade-offs, risks"}
-  ];
-
-  const el = id => document.getElementById(id);
+    {id:"presentation",icon:"▥",title:"Presentation outline",hint:"Slides from your map"},
+    {id:"email",icon:"✉",title:"Draft communication",hint:"Email / memo / announcement"},
+    {id:"timeline",icon:"◷",title:"Timeline builder",hint:"Dates, milestones, sequence"},
+    {id:"dependencies",icon:"∞",title:"Dependency map",hint:"Find blockers & links"},
+    {id:"gaps",icon:"⌕",title:"Find knowledge gaps",hint:"What is missing?"},
+    {id:"sources",icon:"🔎",title:"Source plan",hint:"What should be researched"},
+    {id:"translate",icon:"文",title:"Translate map",hint:"Preserve structure across languages"},
+    {id:"tone",icon:"◈",title:"Change writing style",hint:"Formal, concise, persuasive"},
+    {id:"tags",icon:"#",title:"Auto-tag branches",hint:"Keywords & categories"},
+    {id:"prioritize",icon:"↑",title:"Prioritize branches",hint:"Urgency, impact, effort"},
+    {id:"metrics",icon:"◉",title:"Define success metrics",hint:"KPIs & measurable outcomes"},
+    {id:"checklist",icon:"☑",title:"Checklist generator",hint:"Turn branches into checklists"},
+    {id:"retro",icon:"↺",title:"Project retrospective",hint:"Learnings & improvements"},
+    {id:"scenario",icon:"◌",title:"Scenario analysis",hint:"What-if branches"},
+    {id:"persona",icon:"◎",title:"Persona map",hint:"Users, needs, pain points"},
+    {id:"rootcause",icon:"◉",title:"Root-cause analysis",hint:"5 Whys & cause chains"},
+    {id:"mindset",icon:"◐",title:"Counter-arguments",hint:"Challenge assumptions"}
+  ];\n\n  const el = id => document.getElementById(id);
   const $all = sel => Array.from(document.querySelectorAll(sel));
   const clone = o => JSON.parse(JSON.stringify(o));
   const uid = () => "n_" + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
