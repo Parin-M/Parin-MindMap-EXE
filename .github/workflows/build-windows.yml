@@ -23,8 +23,16 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Install Electron dependencies
-        run: npm install --no-audit --no-fund
+      - name: Install Node dependencies without Electron binary download
+        shell: pwsh
+        run: |
+          npm install --no-audit --no-fund --ignore-scripts
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "npm install failed; retrying once..."
+            npm cache verify
+            npm install --no-audit --no-fund --ignore-scripts
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
       - name: Checkout llama.cpp Windows 7 compatible revision
         shell: pwsh
@@ -85,6 +93,9 @@ jobs:
           "@ | Set-Content -Encoding UTF8 runtime/ai-notice.txt
 
       - name: Build Parin MindMap
+        shell: pwsh
+        env:
+          ELECTRON_BUILDER_CACHE: ${{ github.workspace }}\.electron-builder-cache
         run: npm run dist:win7
 
       - name: Upload installer
