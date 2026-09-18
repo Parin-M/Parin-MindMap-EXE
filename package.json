@@ -40,7 +40,7 @@
         }
       ],
       "artifactName": "Parin-MindMap-Setup-${version}-${arch}.${ext}",
-      "icon": "assets/logo.svg"
+      "icon": "assets/parin-icon.ico"
     },
     "nsis": {
       "oneClick": false,
