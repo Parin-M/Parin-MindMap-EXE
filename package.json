@@ -10,7 +10,7 @@
     "start": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "dist:win7": "electron-builder --win nsis"
+    "dist:win7": "electron-builder --win nsis --publish never"
   },
   "devDependencies": {
     "electron": "22.3.27",
@@ -58,13 +58,14 @@
         "to": "ai/llama-server.exe"
       },
       {
-        "from": "runtime/models/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf",
+        "from": "runtime/models/Phi-3-mini-4k-instruct-q4.gguf",
         "to": "ai/models/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf"
       },
       {
         "from": "runtime/ai-notice.txt",
         "to": "ai/ai-notice.txt"
       }
-    ]
+    ],
+    "publish": "never"
   }
 }
