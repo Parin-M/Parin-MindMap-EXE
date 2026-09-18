@@ -459,6 +459,7 @@
     const toggle=el("aiToggleBtn");
     if(toggle){toggle.textContent=state.aiEnabled?"●":"○";toggle.title=state.aiEnabled?"Disable AI":"Enable AI";}
     $all("[data-ai-action]").forEach(b=>b.disabled=!state.aiEnabled);
+    ["agentPlanBtn","agentMode","copilotSend"].forEach(id=>{const node=el(id);if(node)node.disabled=!state.aiEnabled;});
   }
   function openCopilot(){
     el("copilotPanel").classList.remove("hidden");
