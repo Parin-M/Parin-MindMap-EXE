@@ -224,7 +224,7 @@
         <div><div class="modal-kicker">PARIN AI</div><h2 data-i18n="aiStudio">AI Studio</h2><p>Powerful AI workflows for your map.</p></div>
         <button class="icon-btn" data-close-modal="aiModal">×</button>
       </div>
-      <div class="ai-layout"><div class="ai-task-list" id="aiTaskList"></div><div class="ai-workbench">
+      <div class="ai-layout"><div class="ai-task-list"><input id="aiTaskSearch" class="ai-task-search" type="search" placeholder="Search AI tools…" aria-label="Search AI tools" /><div id="aiTaskList"></div></div><div class="ai-workbench">
         <div class="field"><span data-i18n="aiPrompt">Prompt</span><textarea id="aiPrompt" rows="7" placeholder="What do you want to map?"></textarea></div>
         <div class="ai-config-row"><label class="field"><span data-i18n="provider">Provider</span><select id="aiProvider"><option value="local">Parin Local AI (Harrier + Gemma 3)</option><option value="compatible">OpenAI-compatible</option></select></label><label class="field"><span data-i18n="model">Model</span><input id="aiModel" value="parin-gemma3-assistant" /></label></div>
         <div class="ai-config-row"><label class="field grow"><span data-i18n="endpoint">Endpoint</span><input id="aiEndpoint" value="http://127.0.0.1:38741/v1/chat/completions" /></label><label class="field api-key"><span data-i18n="apiKey">API key</span><input id="aiKey" type="password" placeholder="Optional for local" /></label></div>
