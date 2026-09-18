@@ -1,36 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Parin MindMap logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Parin MindMap">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#071022"/><stop offset=".55" stop-color="#11143b"/><stop offset="1" stop-color="#071c32"/></linearGradient>
-    <linearGradient id="p" x1=".05" y1=".1" x2=".95" y2=".9"><stop offset="0" stop-color="#55e7ff"/><stop offset=".26" stop-color="#5776ff"/><stop offset=".5" stop-color="#9b67ff"/><stop offset=".76" stop-color="#ef63df"/><stop offset="1" stop-color="#ff9d7a"/></linearGradient>
-    <linearGradient id="page" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#2c5dff"/><stop offset=".6" stop-color="#8c5fff"/><stop offset="1" stop-color="#ff66c8"/></linearGradient>
-    <linearGradient id="node1"><stop stop-color="#63eaff"/><stop offset="1" stop-color="#4f75ff"/></linearGradient>
-    <linearGradient id="node2"><stop stop-color="#ffcb67"/><stop offset="1" stop-color="#ff7a4f"/></linearGradient>
-    <linearGradient id="node3"><stop stop-color="#65f1c5"/><stop offset="1" stop-color="#39bf93"/></linearGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".35"/></filter>
+    <linearGradient id="p" x1="90" y1="80" x2="405" y2="395" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5FE8FF"/><stop offset=".34" stop-color="#4B7BFF"/><stop offset=".68" stop-color="#9A64FF"/><stop offset="1" stop-color="#F56EDB"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="145" y1="360" x2="305" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#557BFF"/><stop offset=".55" stop-color="#B15CFF"/><stop offset="1" stop-color="#FF76B7"/>
+    </linearGradient>
+    <linearGradient id="n1"><stop stop-color="#5BE7FF"/><stop offset="1" stop-color="#4F76FF"/></linearGradient>
+    <linearGradient id="n2"><stop stop-color="#C15CFF"/><stop offset="1" stop-color="#EF6ED5"/></linearGradient>
+    <linearGradient id="n3"><stop stop-color="#FFC85D"/><stop offset="1" stop-color="#FF8C67"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".32"/></filter>
   </defs>
-  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
-  <circle cx="257" cy="250" r="182" fill="none" stroke="#3e6dff" stroke-opacity=".22" stroke-width="2"/>
-  <circle cx="257" cy="250" r="145" fill="none" stroke="#e06dff" stroke-opacity=".10" stroke-width="1.5"/>
+  <rect width="512" height="512" rx="112" fill="#070B17"/>
+  <circle cx="256" cy="250" r="190" fill="none" stroke="#496BFF" stroke-opacity=".12" stroke-width="2"/>
+  <circle cx="256" cy="250" r="150" fill="none" stroke="#B46CFF" stroke-opacity=".07" stroke-width="1.5"/>
+
   <g filter="url(#shadow)">
-    <path d="M158 350C132 332 116 306 116 273c0-38 23-66 59-82l67-30c13-6 22-17 22-30 0-14-9-24-24-24h-35c-22 0-38 12-38 34v18h-39v-21c0-42 30-69 78-69h51c43 0 69 24 69 60 0 29-16 50-47 64l-72 32c-27 12-40 28-40 48 0 20 10 37 30 47Z" fill="url(#p)"/>
-    <path d="M179 356c26 35 60 54 102 54 53 0 90-22 113-64-31 24-59 35-86 35-35 0-63-16-87-49Z" fill="url(#page)" opacity=".95"/>
-    <path d="M176 322c25 23 55 35 87 35 43 0 79-15 108-45-35 12-64 18-89 18-39 0-74-12-106-36Z" fill="#6ee8ff" opacity=".34"/>
+    <!-- conceptual P / flowing mind path -->
+    <path d="M176 372V177c0-45 29-77 78-77h44c43 0 69 24 69 63 0 34-20 56-55 70l-67 27c-28 11-43 27-43 49 0 27 18 48 47 55-48 7-82-13-73-92Zm41-195v113c11-17 29-29 54-39l53-21c19-8 27-19 27-34 0-14-10-21-30-21h-65c-25 0-39 1-39 2Z" fill="url(#p)"/>
+    <!-- leaf / open thought -->
+    <path d="M157 389c36-13 71-9 111 12 24 13 47 19 71 17-27 31-63 47-104 47-42 0-70-24-78-76Z" fill="url(#leaf)"/>
   </g>
+
+  <!-- three idea branches -->
   <g fill="none" stroke-linecap="round" filter="url(#glow)">
-    <path d="M324 188c39 0 51-28 79-28" stroke="#62dcff" stroke-width="10"/>
-    <path d="M317 232c43 0 53 2 83 2" stroke="#ffb65f" stroke-width="10"/>
-    <path d="M316 277c42 0 56 26 85 26" stroke="#53e8bc" stroke-width="10"/>
+    <path d="M314 212c40 0 54-29 83-29" stroke="#67DFFF" stroke-width="9"/>
+    <path d="M313 253c45 0 61 1 91 1" stroke="#C66BFF" stroke-width="9"/>
+    <path d="M309 292c39 0 56 25 88 25" stroke="#FFB35E" stroke-width="9"/>
   </g>
+
   <g filter="url(#shadow)">
-    <rect x="394" y="132" width="72" height="52" rx="17" fill="url(#node1)" stroke="#a9efff" stroke-opacity=".6" stroke-width="2"/>
-    <circle cx="417" cy="158" r="8" fill="#fff" opacity=".95"/><path d="M417 146v24m-7-16h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-    <rect x="400" y="206" width="82" height="54" rx="17" fill="url(#node2)" stroke="#ffd99a" stroke-opacity=".65" stroke-width="2"/>
-    <path d="M419 224h30M419 235h21M419 246h27" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-    <rect x="401" y="278" width="82" height="54" rx="17" fill="url(#node3)" stroke="#b5ffe3" stroke-opacity=".6" stroke-width="2"/>
-    <path d="M419 306l8 8 18-21" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="389" y="158" width="68" height="48" rx="16" fill="url(#n1)"/>
+    <circle cx="410" cy="182" r="5.5" fill="#fff"/>
+    <path d="M410 171v22M403 178h14" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+
+    <rect x="400" y="230" width="74" height="48" rx="16" fill="url(#n2)"/>
+    <path d="M418 246h30M418 257h22" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+
+    <rect x="397" y="308" width="76" height="48" rx="16" fill="url(#n3)"/>
+    <path d="M416 332l7 7 17-18" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
-  <g filter="url(#glow)">
-    <circle cx="128" cy="151" r="3.8" fill="#fff"/><circle cx="390" cy="95" r="3.2" fill="#7cecff"/><circle cx="100" cy="330" r="3.2" fill="#ff80dc"/>
+
+  <g opacity=".95">
+    <circle cx="133" cy="146" r="3" fill="#7CEBFF"/>
+    <circle cx="379" cy="101" r="2.7" fill="#A77DFF"/>
+    <circle cx="105" cy="337" r="2.8" fill="#F58CDC"/>
   </g>
 </svg>
