@@ -121,7 +121,9 @@
     {id:"naming",icon:"T",title:"Naming assistant",hint:"Names, titles & terminology"},
     {id:"promptRefine",icon:"✦",title:"Prompt optimizer",hint:"Improve your next AI request"}
 
-  ];\n\n  const el = id => document.getElementById(id);
+  ];
+
+  const el = id => document.getElementById(id);
   const $all = sel => Array.from(document.querySelectorAll(sel));
   const clone = o => JSON.parse(JSON.stringify(o));
   const uid = () => "n_" + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
