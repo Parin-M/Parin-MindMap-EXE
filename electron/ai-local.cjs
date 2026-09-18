@@ -6,18 +6,22 @@ let serverProcess = null;
 let startPromise = null;
 const PORT = 38741;
 
-function runtimeRoot() {
-  return process.resourcesPath && process.resourcesPath !== path.dirname(process.execPath)
-    ? process.resourcesPath
-    : path.join(__dirname, "../runtime");
+function isPackaged() {
+  return Boolean(process.resourcesPath && fs.existsSync(path.join(process.resourcesPath, "ai")));
 }
 
 function getPaths() {
-  const root = runtimeRoot();
+  if (isPackaged()) {
+    return {
+      exe: path.join(process.resourcesPath, "ai", "llama-server.exe"),
+      model: path.join(process.resourcesPath, "ai", "models", "Phi-4-mini-instruct-Q4_K_M.gguf"),
+      notice: path.join(process.resourcesPath, "ai", "ai-notice.txt")
+    };
+  }
   return {
-    exe: path.join(root, "ai", "llama-server.exe"),
-    model: path.join(root, "ai", "models", "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf"),
-    notice: path.join(root, "ai", "ai-notice.txt")
+    exe: path.join(__dirname, "../runtime/llama/llama-server.exe"),
+    model: path.join(__dirname, "../runtime/models/Phi-4-mini-instruct-Q4_K_M.gguf"),
+    notice: path.join(__dirname, "../runtime/ai-notice.txt")
   };
 }
 
