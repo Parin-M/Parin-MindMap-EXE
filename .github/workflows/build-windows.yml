@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 90
     env:
       LLAMA_REF: "2567073"
-      MODEL_URL: "https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF/resolve/main/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf"
+      MODEL_URL: "https://huggingface.co/inferenceport-ai/Phi-4-mini-instruct-Q4_K_M-GGUF/resolve/main/phi-4-mini-instruct-q4_k_m.gguf"
     steps:
       - name: Checkout Parin MindMap
         uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
           cache: "npm"
 
       - name: Install Electron dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Checkout llama.cpp Windows 7 compatible revision
         shell: pwsh
@@ -67,10 +67,11 @@ jobs:
           @"
           Parin MindMap local AI bundle
 
-          Model: Ministral 3 3B Instruct 2512 GGUF
+          Model: Microsoft Phi-4-mini-instruct GGUF
           Quantization: Q4_K_M
           Model license: Apache 2.0
-          Model source: https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF
+          Original model: https://huggingface.co/microsoft/Phi-4-mini-instruct
+          GGUF conversion source: https://huggingface.co/inferenceport-ai/Phi-4-mini-instruct-Q4_K_M-GGUF
 
           Runtime: llama.cpp
           Runtime license: MIT
