@@ -25,13 +25,22 @@ function isPackaged() {
   return Boolean(process.resourcesPath && fs.existsSync(path.join(process.resourcesPath, "ai")));
 }
 
+function healthCheck() {
+  return new Promise((resolve) => {
+    const http = require("http");
+    const req = http.get("http://127.0.0.1:" + PORT + "/health", (res) => {
+      res.resume();
+      resolve(res.statusCode >= 200 && res.statusCode < 300);
+    });
+    req.setTimeout(1500, () => { req.destroy(); resolve(false); });
+    req.on("error", () => resolve(false));
+  });
+}
+
 async function waitForReady(timeoutMs=120000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    try {
-      const res = await fetch("http://127.0.0.1:" + PORT + "/health");
-      if (res.ok) return true;
-    } catch {}
+    if (await healthCheck()) return true;
     await new Promise(r => setTimeout(r, 750));
   }
   throw new Error("Local AI engine did not become ready.");
