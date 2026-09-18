@@ -13,7 +13,6 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 90
     env:
-      LLAMA_REF: "2567073"
       MODEL_URL: "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf"
     steps:
       - name: Checkout Parin MindMap
@@ -32,8 +31,8 @@ jobs:
         run: |
           git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git llama-src
           Set-Location llama-src
-          git fetch --no-tags origin $env:LLAMA_REF
-          git checkout $env:LLAMA_REF
+          git fetch --no-tags origin refs/pull/8208/head
+          git checkout FETCH_HEAD
 
       - name: Syntax check
         shell: pwsh
