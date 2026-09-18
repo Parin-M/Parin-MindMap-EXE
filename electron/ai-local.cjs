@@ -1,10 +1,12 @@
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 let serverProcess = null;
 let startPromise = null;
 const PORT = 38741;
+const MODEL_FILENAME = "Phi-3-mini-4k-instruct-Q3_K_S.gguf";
 
 function isPackaged() {
   return Boolean(process.resourcesPath && fs.existsSync(path.join(process.resourcesPath, "ai")));
@@ -14,19 +16,15 @@ function getPaths() {
   if (isPackaged()) {
     return {
       exe: path.join(process.resourcesPath, "ai", "llama-server.exe"),
-      model: path.join(process.resourcesPath, "ai", "models", "Phi-3-mini-4k-instruct-q4.gguf"),
+      model: path.join(process.resourcesPath, "ai", "models", MODEL_FILENAME),
       notice: path.join(process.resourcesPath, "ai", "ai-notice.txt")
     };
   }
   return {
     exe: path.join(__dirname, "../runtime/llama/llama-server.exe"),
-    model: path.join(__dirname, "../runtime/models/Phi-4-mini-instruct-Q4_K_M.gguf"),
+    model: path.join(__dirname, "../runtime/models", MODEL_FILENAME),
     notice: path.join(__dirname, "../runtime/ai-notice.txt")
   };
-}
-
-function isPackaged() {
-  return Boolean(process.resourcesPath && fs.existsSync(path.join(process.resourcesPath, "ai")));
 }
 
 function healthCheck() {
@@ -41,7 +39,7 @@ function healthCheck() {
   });
 }
 
-async function waitForReady(timeoutMs=120000) {
+async function waitForReady(timeoutMs = 120000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
     if (await healthCheck()) return true;
@@ -62,20 +60,22 @@ async function ensureLocalAI() {
           : "Local AI runtime is not installed in the development folder. Use the GitHub build workflow."
       );
     }
+
     if (!serverProcess || serverProcess.killed) {
       serverProcess = spawn(p.exe, [
         "--model", p.model,
         "--host", "127.0.0.1",
         "--port", String(PORT),
-        "--alias", "parin-ministral-3b",
-        "--ctx-size", "8192",
-        "--threads", String(Math.max(2, Math.min(8, require("os").cpus().length))),
+        "--alias", "parin-phi3-mini",
+        "--ctx-size", "4096",
+        "--threads", String(Math.max(2, Math.min(8, os.cpus().length))),
         "--n-gpu-layers", "0",
         "--metrics"
       ], {
         windowsHide: true,
         stdio: ["ignore", "pipe", "pipe"]
       });
+
       serverProcess.stdout.on("data", () => {});
       serverProcess.stderr.on("data", () => {});
       serverProcess.on("exit", () => {
@@ -83,9 +83,11 @@ async function ensureLocalAI() {
         startPromise = null;
       });
     }
+
     await waitForReady();
     return "http://127.0.0.1:" + PORT;
   })();
+
   return startPromise;
 }
 
