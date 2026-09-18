@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("parinAPI", {
   openMindMap: () => ipcRenderer.invoke("dialog:open-json"),
   saveText: (data) => ipcRenderer.invoke("dialog:save-text", data),
   aiRequest: (data) => ipcRenderer.invoke("ai:request", data),
+  aiAssist: (data) => ipcRenderer.invoke("ai:assist", data),
   exportPDF: (data) => ipcRenderer.invoke("pdf:export", data),
   openExternal: (url) => ipcRenderer.invoke("app:open-external", url)
 });

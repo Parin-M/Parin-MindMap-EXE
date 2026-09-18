@@ -3,34 +3,35 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-let serverProcess = null;
-let startPromise = null;
-const PORT = 38741;
-const MODEL_FILENAME = "Phi-3-mini-4k-instruct-Q3_K_S.gguf";
+let gemmaProcess = null;
+let harrierProcess = null;
+let gemmaStartPromise = null;
+let harrierStartPromise = null;
+
+const GEMMA_PORT = 38741;
+const HARRIER_PORT = 38742;
+const GEMMA_MODEL = "Gemma3-1B-FP16-bnb-4bit-Q4_K_M.gguf";
+const HARRIER_MODEL = "harrier-oss-v1-0.6b.Q4_K_M.gguf";
 
 function isPackaged() {
   return Boolean(process.resourcesPath && fs.existsSync(path.join(process.resourcesPath, "ai")));
 }
 
 function getPaths() {
-  if (isPackaged()) {
-    return {
-      exe: path.join(process.resourcesPath, "ai", "llama-server.exe"),
-      model: path.join(process.resourcesPath, "ai", "models", MODEL_FILENAME),
-      notice: path.join(process.resourcesPath, "ai", "ai-notice.txt")
-    };
-  }
+  const base = isPackaged() ? path.join(process.resourcesPath, "ai") : path.join(__dirname, "../runtime");
   return {
-    exe: path.join(__dirname, "../runtime/llama/llama-server.exe"),
-    model: path.join(__dirname, "../runtime/models", MODEL_FILENAME),
-    notice: path.join(__dirname, "../runtime/ai-notice.txt")
+    gemmaExe: path.join(base, isPackaged() ? "llama-server.exe" : "llama/llama-server.exe"),
+    gemmaModel: path.join(base, "models", GEMMA_MODEL),
+    harrierExe: path.join(base, isPackaged() ? "llama-server.exe" : "llama/llama-server.exe"),
+    harrierModel: path.join(base, "models", HARRIER_MODEL),
+    notice: path.join(base, "ai-notice.txt")
   };
 }
 
-function healthCheck() {
+function healthCheck(port) {
   return new Promise((resolve) => {
     const http = require("http");
-    const req = http.get("http://127.0.0.1:" + PORT + "/health", (res) => {
+    const req = http.get("http://127.0.0.1:" + port + "/health", (res) => {
       res.resume();
       resolve(res.statusCode >= 200 && res.statusCode < 300);
     });
@@ -39,64 +40,103 @@ function healthCheck() {
   });
 }
 
-async function waitForReady(timeoutMs = 120000) {
+async function waitForReady(port, timeoutMs = 120000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    if (await healthCheck()) return true;
+    if (await healthCheck(port)) return true;
     await new Promise(r => setTimeout(r, 750));
   }
-  throw new Error("Local AI engine did not become ready.");
+  throw new Error("Local AI service did not become ready on port " + port + ".");
+}
+
+function spawnServer(exe, model, port, extraArgs = []) {
+  return spawn(exe, [
+    "--model", model,
+    "--host", "127.0.0.1",
+    "--port", String(port),
+    "--alias", port === GEMMA_PORT ? "parin-gemma3-assistant" : "parin-harrier-memory",
+    ...extraArgs,
+    "--ctx-size", port === GEMMA_PORT ? "8192" : "4096",
+    "--threads", String(Math.max(2, Math.min(8, os.cpus().length))),
+    "--n-gpu-layers", "0",
+    "--metrics"
+  ], {
+    windowsHide: true,
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+}
+
+async function ensureGemma() {
+  if (gemmaStartPromise) return gemmaStartPromise;
+  gemmaStartPromise = (async () => {
+    const p = getPaths();
+    if (!fs.existsSync(p.gemmaExe) || !fs.existsSync(p.gemmaModel)) {
+      gemmaStartPromise = null;
+      throw new Error(isPackaged()
+        ? "The bundled Gemma 3 assistant engine/model is missing from this installation."
+        : "The local Gemma 3 runtime is not installed in the development folder.");
+    }
+    if (!gemmaProcess || gemmaProcess.killed) {
+      gemmaProcess = spawnServer(p.gemmaExe, p.gemmaModel, GEMMA_PORT, ["--temp", "0.25"]);
+      gemmaProcess.stdout.on("data", () => {});
+      gemmaProcess.stderr.on("data", () => {});
+      gemmaProcess.on("exit", () => {
+        gemmaProcess = null;
+        gemmaStartPromise = null;
+      });
+    }
+    await waitForReady(GEMMA_PORT);
+    return "http://127.0.0.1:" + GEMMA_PORT;
+  })();
+  return gemmaStartPromise;
+}
+
+async function ensureHarrier() {
+  if (harrierStartPromise) return harrierStartPromise;
+  harrierStartPromise = (async () => {
+    const p = getPaths();
+    if (!fs.existsSync(p.harrierExe) || !fs.existsSync(p.harrierModel)) {
+      harrierStartPromise = null;
+      throw new Error(isPackaged()
+        ? "The bundled Harrier semantic-memory engine/model is missing from this installation."
+        : "The local Harrier runtime is not installed in the development folder.");
+    }
+    if (!harrierProcess || harrierProcess.killed) {
+      harrierProcess = spawnServer(p.harrierExe, p.harrierModel, HARRIER_PORT, [
+        "--embedding",
+        "--pooling", "last"
+      ]);
+      harrierProcess.stdout.on("data", () => {});
+      harrierProcess.stderr.on("data", () => {});
+      harrierProcess.on("exit", () => {
+        harrierProcess = null;
+        harrierStartPromise = null;
+      });
+    }
+    await waitForReady(HARRIER_PORT);
+    return "http://127.0.0.1:" + HARRIER_PORT;
+  })();
+  return harrierStartPromise;
 }
 
 async function ensureLocalAI() {
-  if (startPromise) return startPromise;
-  startPromise = (async () => {
-    const p = getPaths();
-    if (!fs.existsSync(p.exe) || !fs.existsSync(p.model)) {
-      startPromise = null;
-      throw new Error(
-        isPackaged()
-          ? "The bundled local AI engine/model is missing from this installation."
-          : "Local AI runtime is not installed in the development folder. Use the GitHub build workflow."
-      );
-    }
-
-    if (!serverProcess || serverProcess.killed) {
-      serverProcess = spawn(p.exe, [
-        "--model", p.model,
-        "--host", "127.0.0.1",
-        "--port", String(PORT),
-        "--alias", "parin-phi3-mini",
-        "--ctx-size", "4096",
-        "--threads", String(Math.max(2, Math.min(8, os.cpus().length))),
-        "--n-gpu-layers", "0",
-        "--metrics"
-      ], {
-        windowsHide: true,
-        stdio: ["ignore", "pipe", "pipe"]
-      });
-
-      serverProcess.stdout.on("data", () => {});
-      serverProcess.stderr.on("data", () => {});
-      serverProcess.on("exit", () => {
-        serverProcess = null;
-        startPromise = null;
-      });
-    }
-
-    await waitForReady();
-    return "http://127.0.0.1:" + PORT;
-  })();
-
-  return startPromise;
+  await Promise.all([ensureGemma(), ensureHarrier()]);
+  return "http://127.0.0.1:" + GEMMA_PORT;
 }
 
 function stopLocalAI() {
-  if (serverProcess && !serverProcess.killed) {
-    try { serverProcess.kill(); } catch {}
+  for (const p of [gemmaProcess, harrierProcess]) {
+    if (p && !p.killed) {
+      try { p.kill(); } catch {}
+    }
   }
-  serverProcess = null;
-  startPromise = null;
+  gemmaProcess = null;
+  harrierProcess = null;
+  gemmaStartPromise = null;
+  harrierStartPromise = null;
 }
 
-module.exports = { ensureLocalAI, stopLocalAI, getPaths, PORT };
+module.exports = {
+  ensureLocalAI, ensureGemma, ensureHarrier, stopLocalAI, getPaths,
+  GEMMA_PORT, HARRIER_PORT, GEMMA_MODEL, HARRIER_MODEL
+};

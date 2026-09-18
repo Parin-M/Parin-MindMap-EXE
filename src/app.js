@@ -23,7 +23,7 @@
       paperSize:"Paper size",orientation:"Orientation",margin:"Margin",quality:"Quality",printBackground:"Print background",includeTitle:"Include title",
       includeLegend:"Include legend",includeFooter:"Include footer",exportNow:"Export now",settingsCopy:"Tune the workspace and AI connection.",
       appearance:"Appearance",defaultLayout:"Default layout",language:"Language",interfaceLanguage:"Interface language",aiConnection:"AI connection",
-      aiLicenseHint:"Parin MindMap does not bundle a third-party model in this build. Choose a model with commercial-use rights and keep its license notice with your distribution.",
+      aiLicenseHint:"Local Copilot uses Harrier for semantic context retrieval and Gemma 3 for assistant reasoning. Review the bundled model notice and Gemma Terms before redistribution.",
       saveChanges:"Save changes"
     },
     fa:{
@@ -39,7 +39,7 @@
       paperSize:"اندازه کاغذ",orientation:"جهت صفحه",margin:"حاشیه",quality:"کیفیت",printBackground:"پس‌زمینه",includeTitle:"عنوان",
       includeLegend:"راهنما",includeFooter:"پابرگ",exportNow:"خروجی بگیر",settingsCopy:"محیط کار و اتصال AI را تنظیم کن.",
       appearance:"ظاهر",defaultLayout:"چیدمان پیش‌فرض",language:"زبان",interfaceLanguage:"زبان محیط",aiConnection:"اتصال هوش مصنوعی",
-      aiLicenseHint:"در این نسخه مدل شخص ثالث داخل برنامه بسته‌بندی نشده است. مدلی با مجوز استفاده تجاری انتخاب کنید و اطلاعیه مجوز آن را نگه دارید.",
+      aiLicenseHint:"Copilot محلی از Harrier برای زمینه معنایی و Gemma 3 برای استدلال دستیار استفاده می‌کند. پیش از انتشار، اطلاعیه مدل و شرایط Gemma را بررسی کنید.",
       saveChanges:"ذخیره تغییرات"
     },
     de:{newMap:"Neue Map",workspace:"Arbeitsbereich",mindMap:"Mindmap",aiStudio:"KI-Studio",export:"Export",quickTools:"Schnellwerkzeuge",addChild:"Unterknoten",addSibling:"Geschwisterknoten",deleteNode:"Löschen",focusSelection:"Auswahl fokussieren",localFirst:"Lokal zuerst",localFirstCopy:"Deine Map bleibt auf diesem Gerät.",settings:"Einstellungen",open:"Öffnen",save:"Speichern",askAI:"KI fragen",layout:"Layout",theme:"Design",notes:"Notizen",fit:"Einpassen",selectedNode:"Ausgewählter Knoten",nodeText:"Knotentext",nodeNote:"Notiz",branchColor:"Astfarbe",priority:"Priorität",collapse:"Einklappen",delete:"Löschen",aiActions:"KI-Aktionen",expandNode:"Knoten erweitern",rewriteNode:"Klar umformulieren",generateQuestions:"Fragen erzeugen",nodes:"Knoten",depth:"Tiefe",branches:"Äste",canvasHintTitle:"Mit einem Gedanken beginnen.",canvasHintCopy:"Tab für einen Unterknoten, Enter für einen Geschwisterknoten oder KI für eine Struktur.",aiModalCopy:"Rohideen in klare Strukturen verwandeln.",aiPrompt:"Prompt",provider:"Anbieter",model:"Modell",endpoint:"Endpunkt",apiKey:"API-Schlüssel",aiResult:"KI-Ergebnis",applyToMap:"Auf Map anwenden",commercialNote:"Für kommerzielle Nutzung müssen Modell- und Dienstbedingungen passen.",runAI:"KI ausführen",exportCopy:"Professionelle Dokumente aus deiner Map erstellen.",paperSize:"Papierformat",orientation:"Ausrichtung",margin:"Rand",quality:"Qualität",printBackground:"Hintergrund drucken",includeTitle:"Titel einfügen",includeLegend:"Legende einfügen",includeFooter:"Fußzeile",exportNow:"Jetzt exportieren",settingsCopy:"Arbeitsbereich und KI-Verbindung anpassen.",appearance:"Darstellung",defaultLayout:"Standardlayout",language:"Sprache",interfaceLanguage:"Oberflächensprache",aiConnection:"KI-Verbindung",aiLicenseHint:"Dieses Build bündelt kein Drittanbieter-Modell. Verwende ein Modell mit kommerziellen Nutzungsrechten.",saveChanges:"Änderungen speichern"},
@@ -607,32 +607,35 @@
 
   async function proposeAgentPlan(userRequest){
     if(!state.aiEnabled){toast("AI is disabled.");return;}
-    const endpoint=el("aiEndpoint").value.trim(), apiKey=el("aiKey").value.trim();
-    const model=el("aiModel").value.trim()||"Phi-3-mini-4k-instruct";
+    state.agentRunning=true;
+    el("agentStopBtn").disabled=false;
     const selected=findNode(state.selected)?.node;
-    const prompt="You are the supervised Parin MindMap Agent. NEVER directly edit the map. Return ONLY JSON with this schema: "+
-      '{"type":"agent_plan","summary":"string","actions":[{"op":"add_child|add_sibling|edit_node|delete_node|move_node|set_style|collapse_node|expand_node","targetId":"id or null","parentId":"id or null","newParentId":"id or null","label":"string","note":"string","color":"#RRGGBB","priority":"normal|high|low","reason":"brief explanation"}]}. '+
-      "Use only IDs from the node catalog. Keep actions minimal and safe. Never delete the root. Interface language: "+(LANGS[state.lang]?.label||"English")+"\n"+
-      "Selected node: "+(selected?.label||"none")+"\nNode catalog:\n"+JSON.stringify(nodeCatalog())+
-      "\nCurrent request:\n"+String(userRequest||"");
     try{
-      const data=await window.parinAPI.aiRequest({endpoint,apiKey,local:el("aiProvider").value==="local",body:{model,messages:[
-        {role:"system",content:"You are a cautious, supervised UI agent. Plan operations; do not act without approval."},
-        {role:"user",content:prompt}
-      ],temperature:.15}});
-      const raw=String(data?.choices?.[0]?.message?.content||data?.output_text||data?.response||JSON.stringify(data,null,2));
+      const result=await window.parinAPI.aiAssist({
+        local:el("aiProvider").value==="local",
+        endpoint:el("aiEndpoint").value.trim(),
+        apiKey:el("aiKey").value.trim(),
+        model:el("aiModel").value.trim()||"parin-gemma3-assistant",
+        query:String(userRequest||"Review the current map and suggest safe improvements."),
+        selectedId:state.selected,
+        selectedLabel:selected?.label||"",
+        language:LANGS[state.lang]?.label||"English",
+        context:semanticAssistantContext(),
+        forcePlan:true
+      });
+      const raw=String(result?.data?.choices?.[0]?.message?.content||result?.data?.output_text||result?.data?.response||"");
       const parsed=extractJson(raw);
-      if(parsed?.type!=="agent_plan"||!Array.isArray(parsed.actions))throw new Error("AI did not return a valid agent plan.");
-      const valid=[];
-      for(const a of parsed.actions.slice(0,30)){
-        const v=validateAgentAction(a);
-        if(v.ok) valid.push({...a,description:a.reason||agentActionLabel(a)});
-      }
-      state.agentPlan=valid;
+      if(parsed?.type!=="agent_plan"||!Array.isArray(parsed.actions)) throw new Error("No valid supervised plan returned.");
+      state.agentPlan=parsed.actions.slice(0,30).map(a=>({...a,description:a.reason||agentActionLabel(a)}))
+        .filter(a=>validateAgentAction(a).ok);
       renderAgentPlan();
-      if(parsed.summary) appendCopilot("assistant","Agent plan: "+parsed.summary+"\n\nReview the proposed actions below before applying them.");
-      if(!valid.length) appendCopilot("assistant","No safe map changes were proposed.");
-    }catch(e){appendCopilot("assistant","Agent planning error: "+(e.message||"request failed"));}
+      appendCopilot("assistant","Supervised plan ready. Review each action before applying it.");
+    }catch(e){
+      appendCopilot("assistant","Planning error: "+(e.message||"request failed"));
+    }finally{
+      state.agentRunning=false;
+      el("agentStopBtn").disabled=true;
+    }
   }
 
   function appendCopilot(role,text){
@@ -732,70 +735,71 @@ Existing map:
 ${context}`;
   }
 
+  function semanticAssistantContext(){
+    return flatten(state.root).map(({node,parent})=>({
+      id:node.id,
+      label:node.label,
+      note:node.note||"",
+      parentLabel:parent?.label||""
+    }));
+  }
+
   async function runCopilot(){
     if(!state.aiEnabled){toast("AI is disabled.");return;}
     const input=el("copilotInput");
     const textIn=input.value.trim();
     if(!textIn)return;
+
     appendCopilot("user",textIn);
     input.value="";
-    const endpoint=el("aiEndpoint").value.trim();
-    const apiKey=el("aiKey").value.trim();
-    const model=el("aiModel").value.trim()||"Phi-3-mini-4k-instruct";
-    const selected=findNode(state.selected)?.node;
-    const context=mapAsOutline();
-    const useSel=el("copilotUseSelection")?.checked;
-    const contextText=(useSel&&selected)
-      ? "Selected node: "+selected.label+"\nSelected note: "+(selected.note||"")+"\n\n"
-      : "";
-    const prompt="You are Parin Copilot, an expert mind-map and productivity assistant. Work with the current map and give actionable output. Interface language: "+(LANGS[state.lang]?.label||"English")+".\n\n"+
-      contextText+"Current map:\n"+context+"\n\nUser request:\n"+textIn+
-      "\n\nFor normal questions, answer naturally. For map changes, NEVER execute anything. Propose a supervised plan using this JSON schema:\n"+
-      '{"type":"agent_plan","summary":"string","actions":[{"op":"add_child|add_sibling|edit_node|delete_node|move_node|set_style|collapse_node|expand_node","targetId":"id or null","parentId":"id or null","newParentId":"id or null","label":"string","note":"string","color":"#RRGGBB","priority":"normal|high|low","reason":"brief explanation"}]}';
+
     try{
-      const data=await window.parinAPI.aiRequest({
-        endpoint,apiKey,
+      const selected=findNode(state.selected)?.node;
+      const result=await window.parinAPI.aiAssist({
         local:el("aiProvider").value==="local",
-        body:{model,messages:[
-          {role:"system",content:"You are Parin Copilot. Be precise, concise, and practical. Never invent sources."},
-          {role:"user",content:prompt}
-        ],temperature:.3}
+        endpoint:el("aiEndpoint").value.trim(),
+        apiKey:el("aiKey").value.trim(),
+        model:el("aiModel").value.trim()||"parin-gemma3-assistant",
+        query:textIn,
+        selectedId:state.selected,
+        selectedLabel:selected?.label||"",
+        language:LANGS[state.lang]?.label||"English",
+        context:semanticAssistantContext()
       });
+      const data=result?.data||result;
       const answer=String(data?.choices?.[0]?.message?.content||data?.output_text||data?.response||JSON.stringify(data,null,2));
       appendCopilot("assistant",answer);
+
       try{
         const parsed=extractJson(answer);
-        if(parsed?.action==="add_children"&&Array.isArray(parsed.children)){
-          state.agentPlan = parsed.children.map(x=>({
-            op:"add_child", parentId:state.selected,
-            label:String(x.label||"New idea"), note:String(x.note||""),
-            description:"AI suggested this branch. Review it before applying."
-          }));
-          renderAgentPlan();
-          appendCopilot("assistant","I prepared a supervised change plan below. Nothing was changed yet.");
-        }
         if(parsed?.type==="agent_plan"&&Array.isArray(parsed.actions)){
-          state.agentPlan=parsed.actions.map(a=>({...a,description:a.reason||agentActionLabel(a)}))
-            .filter(a=>validateAgentAction(a).ok).slice(0,30);
+          state.agentPlan=parsed.actions.slice(0,30).map(a=>({...a,description:a.reason||agentActionLabel(a)}))
+            .filter(a=>validateAgentAction(a).ok);
           renderAgentPlan();
-          appendCopilot("assistant","I prepared a supervised Agent plan. Review the proposed changes before applying them.");
+          appendCopilot("assistant","Agent plan prepared. Nothing has been changed; review and approve the proposed actions below.");
         }
       }catch{}
+
+      if(Array.isArray(result?.context)&&result.context.length){
+        const labels=result.context.slice(0,4).map(x=>x.label).filter(Boolean);
+        el("copilotContext").textContent=labels.length ? "Semantic context: "+labels.join(" • ") : "Semantic context ready";
+      }
     }catch(e){
-      appendCopilot("assistant","AI error: "+(e.message||"request failed"));
+      appendCopilot("assistant","Assistant error: "+(e.message||"request failed"));
     }
   }
+
 
   async function runAI(){
     const endpoint=el("aiEndpoint").value.trim();
     const apiKey=el("aiKey").value.trim();
-    const model=el("aiModel").value.trim()||"mistral";
+    const model=el("aiModel").value.trim()||"parin-gemma3-assistant";
     if(!endpoint){toast("Set an AI endpoint first.");return;}
     const prompt=buildAIPrompt(state.aiTask,el("aiPrompt").value.trim());
     const btn=el("runAIBtn"); btn.disabled=true; btn.style.opacity=".6"; btn.querySelector("span:last-child").textContent="Thinking…";
     try{
       const body={model,messages:[
-        {role:"system",content:"You are Parin MindMap AI. Be concise, structural, and useful. Never invent sources."},
+        {role:"system",content:"You are the Parin Copilot engine. Be concise, structural, task-oriented, and useful. Treat the map as the workspace. Never invent sources or filler."},
         {role:"user",content:prompt}
       ],temperature:0.35};
       const data=await window.parinAPI.aiRequest({endpoint,apiKey,local:el("aiProvider").value==="local",body});
@@ -932,7 +936,7 @@ ${context}`;
 
   function loadSettings(){
     const s=JSON.parse(localStorage.getItem("parin.ai")||"null")||{
-      provider:"local",model:"mistral",endpoint:"http://127.0.0.1:8080/v1/chat/completions",key:""
+      provider:"local",model:"parin-gemma3-assistant",endpoint:"http://127.0.0.1:8080/v1/chat/completions",key:""
     };
     el("aiProvider").value=s.provider;el("aiModel").value=s.model;el("aiEndpoint").value=s.endpoint;el("aiKey").value=s.key;
     el("settingsProvider").value=s.provider;el("settingsModel").value=s.model;el("settingsEndpoint").value=s.endpoint;el("settingsKey").value=s.key;

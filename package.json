@@ -58,8 +58,12 @@
         "to": "ai/llama-server.exe"
       },
       {
-        "from": "runtime/models/Phi-3-mini-4k-instruct-Q3_K_S.gguf",
-        "to": "ai/models/Phi-3-mini-4k-instruct-Q3_K_S.gguf"
+        "from": "runtime/models/Gemma3-1B-FP16-bnb-4bit-Q4_K_M.gguf",
+        "to": "ai/models/Gemma3-1B-FP16-bnb-4bit-Q4_K_M.gguf"
+      },
+      {
+        "from": "runtime/models/harrier-oss-v1-0.6b.Q4_K_M.gguf",
+        "to": "ai/models/harrier-oss-v1-0.6b.Q4_K_M.gguf"
       },
       {
         "from": "runtime/ai-notice.txt",

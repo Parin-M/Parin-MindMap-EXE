@@ -1,17 +1,31 @@
-# Bundled AI notice
+# Parin MindMap bundled local AI
 
-Parin MindMap's packaged Windows build includes a local AI runtime and a quantized GGUF model.
+Parin MindMap uses two local models as one supervised Copilot pipeline.
 
-- Base model: **Microsoft Phi-3-mini-4k-instruct**
-- Quantization: **Q3_K_S**
-- Quantized GGUF: **bartowski/Phi-3-mini-4k-instruct-GGUF**
-- Model license: **MIT**
-- Original model: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
-- Quantized model: https://huggingface.co/bartowski/Phi-3-mini-4k-instruct-GGUF
-- Runtime: **llama.cpp**
-- Runtime license: **MIT**
-- Runtime source: https://github.com/ggml-org/llama.cpp
+**Harrier OSS v1 0.6B**
+- Role: semantic retrieval, relevance scoring, map-memory layer
+- GGUF: Q4_K_M
+- Source: https://huggingface.co/mradermacher/harrier-oss-v1-0.6b-GGUF
+- License: MIT
 
-The GitHub Actions build downloads the quantized GGUF at build time and embeds it in the generated Windows installer resources. The model is not stored in the Git repository.
+**Gemma 3 1B**
+- Role: task interpretation, concise assistance, reasoning, supervised Agent plans
+- Requested checkpoint lineage: https://huggingface.co/ishu-newaz/Gemma3-1B-FP16-bnb-4bit
+- Repository-declared license: Apache-2.0
+- Deployment format: GGUF Q4_K_M generated during the build for llama.cpp
+- Gemma terms: https://ai.google.dev/gemma/terms
 
-Commercial redistribution is subject to the licenses and notices of all bundled third-party components.
+The requested Gemma repository uses BitsAndBytes/NF4 safetensors and is not a llama.cpp-native GGUF. The build first attempts CPU dequantization of that exact checkpoint; when the build environment cannot dequantize BnB, it uses the author's matching FP16 sibling checkpoint before producing the GGUF deployment artifact.
+
+**Runtime**
+- llama.cpp, MIT
+- Source: https://github.com/ggml-org/llama.cpp
+
+Assistant behavior:
+1. Harrier finds the most relevant nodes from the current map.
+2. Gemma receives only the relevant context and interprets the user's task.
+3. Normal requests receive concise task-oriented help, not open-ended chatbot conversation.
+4. Requests that change the map produce a supervised Agent plan.
+5. The application applies structural changes only after explicit user approval.
+
+Review all upstream licenses and terms before commercial redistribution.

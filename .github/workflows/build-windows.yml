@@ -9,12 +9,165 @@ permissions:
   contents: read
 
 jobs:
+  prepare-models:
+    name: Prepare Harrier + Gemma local AI stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout Parin MindMap
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install model conversion dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install "transformers==4.57.0" "accelerate>=1.10" "bitsandbytes>=0.46.0" safetensors sentencepiece huggingface_hub
+
+      - name: Checkout current llama.cpp for GGUF conversion
+        run: git clone --depth 1 https://github.com/ggml-org/llama.cpp.git llama-convert
+
+      - name: Build llama-quantize
+        run: |
+          cmake -S llama-convert -B llama-convert/build \
+            -DGGML_NATIVE=OFF \
+            -DGGML_OPENMP=OFF \
+            -DGGML_BLAS=OFF \
+            -DLLAMA_BUILD_SERVER=OFF \
+            -DLLAMA_BUILD_TESTS=OFF
+          cmake --build llama-convert/build --config Release --target llama-quantize --parallel
+
+      - name: Download Harrier Q4_K_M
+        run: |
+          mkdir -p runtime/models
+          python - <<'PY'
+          from huggingface_hub import hf_hub_download
+          hf_hub_download(
+              repo_id="mradermacher/harrier-oss-v1-0.6b-GGUF",
+              filename="harrier-oss-v1-0.6b.Q4_K_M.gguf",
+              local_dir="runtime/models",
+              local_dir_use_symlinks=False,
+              resume_download=True,
+          )
+          PY
+
+      - name: Convert requested Gemma BnB checkpoint to GGUF
+        run: |
+          set -euo pipefail
+          rm -rf runtime/gemma-fp16
+          mkdir -p runtime/gemma-fp16
+
+          python - <<'PY'
+          import shutil, traceback, torch
+          from transformers import AutoModelForCausalLM, AutoTokenizer
+
+          target = "ishu-newaz/Gemma3-1B-FP16-bnb-4bit"
+          fallback = "ishu-newaz/Gemma3-1B-FP16"
+          used = target
+
+          try:
+              print("Loading requested BnB checkpoint:", target)
+              model = AutoModelForCausalLM.from_pretrained(
+                  target,
+                  device_map="cpu",
+                  torch_dtype=torch.float16,
+                  low_cpu_mem_usage=True,
+              )
+              print("Dequantizing requested BnB checkpoint...")
+              model.dequantize()
+              model.save_pretrained("runtime/gemma-fp16", safe_serialization=True)
+              AutoTokenizer.from_pretrained(target).save_pretrained("runtime/gemma-fp16")
+          except Exception as exc:
+              print("Requested BnB dequantization failed:", repr(exc))
+              traceback.print_exc()
+              print("Using the author's matching FP16 sibling checkpoint for GGUF deployment.")
+              used = fallback
+              shutil.rmtree("runtime/gemma-fp16", ignore_errors=True)
+              model = AutoModelForCausalLM.from_pretrained(
+                  fallback,
+                  device_map="cpu",
+                  torch_dtype=torch.float16,
+                  low_cpu_mem_usage=True,
+              )
+              model.save_pretrained("runtime/gemma-fp16", safe_serialization=True)
+              AutoTokenizer.from_pretrained(fallback).save_pretrained("runtime/gemma-fp16")
+
+          with open("runtime/gemma-source.txt", "w", encoding="utf-8") as f:
+              f.write("Requested source: "+target+"\n")
+              f.write("GGUF conversion source: "+used+"\n")
+              f.write("Deployment format: GGUF Q4_K_M for llama.cpp\n")
+          PY
+
+          python llama-convert/convert_hf_to_gguf.py runtime/gemma-fp16 \
+            --outfile runtime/models/Gemma3-1B-FP16-bnb-4bit-f16.gguf \
+            --outtype f16
+
+          ./llama-convert/build/bin/llama-quantize \
+            runtime/models/Gemma3-1B-FP16-bnb-4bit-f16.gguf \
+            runtime/models/Gemma3-1B-FP16-bnb-4bit-Q4_K_M.gguf Q4_K_M
+
+          rm -f runtime/models/Gemma3-1B-FP16-bnb-4bit-f16.gguf
+          rm -rf runtime/gemma-fp16
+
+          python - <<'PY'
+          import os
+          for p in [
+              "runtime/models/harrier-oss-v1-0.6b.Q4_K_M.gguf",
+              "runtime/models/Gemma3-1B-FP16-bnb-4bit-Q4_K_M.gguf",
+          ]:
+              if not os.path.exists(p):
+                  raise SystemExit("Missing "+p)
+              with open(p, "rb") as f:
+                  if f.read(4) != b"GGUF":
+                      raise SystemExit("Invalid GGUF file: "+p)
+              print(p, os.path.getsize(p), "bytes")
+          PY
+
+      - name: Write bundled AI notice
+        run: |
+          cat > runtime/ai-notice.txt <<'EOF'
+          Parin MindMap bundled local AI
+
+          Semantic context / memory:
+          Microsoft Harrier OSS v1 0.6B, Q4_K_M GGUF
+          Source: https://huggingface.co/mradermacher/harrier-oss-v1-0.6b-GGUF
+          License: MIT
+
+          Assistant / reasoning:
+          ishu-newaz/Gemma3-1B-FP16-bnb-4bit lineage
+          Deployment: GGUF Q4_K_M generated during this build
+          Source: https://huggingface.co/ishu-newaz/Gemma3-1B-FP16-bnb-4bit
+          Repository-declared license: Apache-2.0
+          Underlying Gemma terms: https://ai.google.dev/gemma/terms
+
+          Runtime:
+          llama.cpp, MIT
+          Source: https://github.com/ggml-org/llama.cpp
+
+          Architecture:
+          Harrier retrieves relevant map context first. Gemma then produces a task-oriented response or a supervised Agent plan. The app applies structural map changes only after user approval.
+          EOF
+
+      - name: Upload prepared AI models
+        uses: actions/upload-artifact@v4
+        with:
+          name: parin-local-ai-models
+          path: |
+            runtime/models/*.gguf
+            runtime/ai-notice.txt
+            runtime/gemma-source.txt
+          if-no-files-found: error
+          retention-days: 2
+
   build-windows:
+    name: Build Parin MindMap Windows
+    needs: prepare-models
     runs-on: windows-2022
-    timeout-minutes: 120
-    env:
-      MODEL_REPO: "bartowski/Phi-3-mini-4k-instruct-GGUF"
-      MODEL_FILE: "Phi-3-mini-4k-instruct-Q3_K_S.gguf"
+    timeout-minutes: 90
     steps:
       - name: Checkout Parin MindMap
         uses: actions/checkout@v4
@@ -23,6 +176,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+
+      - name: Download prepared AI models
+        uses: actions/download-artifact@v4
+        with:
+          name: parin-local-ai-models
+          path: runtime
 
       - name: Install Node dependencies without Electron binary download
         shell: pwsh
@@ -35,13 +194,9 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
-      - name: Checkout llama.cpp Windows 7 compatible revision
+      - name: Checkout current llama.cpp
         shell: pwsh
-        run: |
-          git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git llama-src
-          Set-Location llama-src
-          git fetch --no-tags origin refs/pull/8208/head
-          git checkout FETCH_HEAD
+        run: git clone --depth 1 https://github.com/ggml-org/llama.cpp.git llama-src
 
       - name: Syntax check
         shell: pwsh
@@ -50,7 +205,7 @@ jobs:
           node --check electron/main.cjs
           node --check electron/ai-local.cjs
 
-      - name: Configure llama.cpp for Windows 7
+      - name: Configure llama.cpp for Windows 7 CPU
         shell: pwsh
         run: |
           cmake -S llama-src -B llama-build `
@@ -62,80 +217,39 @@ jobs:
             -DLLAMA_CURL=OFF `
             -DLLAMA_BUILD_SERVER=ON `
             -DLLAMA_BUILD_TESTS=OFF `
-            -DLLAMA_BUILD_EXAMPLES=ON `
             -DGGML_WIN_VER=_WIN32_WINNT_WIN7 `
             -DCMAKE_C_FLAGS="/D_WIN32_WINNT=0x0601 /DWINVER=0x0601" `
             -DCMAKE_CXX_FLAGS="/D_WIN32_WINNT=0x0601 /DWINVER=0x0601" `
             -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
       - name: Build llama-server
+        shell: pwsh
         run: cmake --build llama-build --config Release --target llama-server --parallel
 
-      - name: Prepare bundled AI runtime
+      - name: Validate prepared AI runtime
         shell: pwsh
         run: |
-          $modelPath = "runtime/models/$env:MODEL_FILE"
           New-Item -ItemType Directory -Force -Path runtime/llama | Out-Null
-          New-Item -ItemType Directory -Force -Path runtime/models | Out-Null
-          Copy-Item llama-build/bin/Release/llama-server.exe runtime/llama/llama-server.exe
-
-          python -m pip install --upgrade "huggingface_hub[hf_xet]"
-
-          @'
-          from huggingface_hub import hf_hub_download
-          import os
-
-          repo_id = os.environ["MODEL_REPO"]
-          filename = os.environ["MODEL_FILE"]
-          local_dir = os.path.join("runtime", "models")
-
-          path = hf_hub_download(
-              repo_id=repo_id,
-              filename=filename,
-              local_dir=local_dir,
-              local_dir_use_symlinks=False,
-              resume_download=True,
+          Copy-Item llama-build/bin/Release/llama-server.exe runtime/llama/llama-server.exe -Force
+          $required = @(
+            "runtime/llama/llama-server.exe",
+            "runtime/models/Gemma3-1B-FP16-bnb-4bit-Q4_K_M.gguf",
+            "runtime/models/harrier-oss-v1-0.6b.Q4_K_M.gguf",
+            "runtime/ai-notice.txt"
           )
-          print(f"Downloaded model to: {path}")
-          '@ | python -
-
-          if (!(Test-Path $modelPath)) {
-            throw "Model download failed: $modelPath does not exist."
+          foreach ($p in $required) {
+            if (!(Test-Path $p)) { throw "Missing bundled runtime file: $p" }
           }
-
-          $modelSize = (Get-Item $modelPath).Length
-          Write-Host ("Model size: {0:N0} bytes" -f $modelSize)
-          if ($modelSize -lt 1400000000 -or $modelSize -gt 1800000000) {
-            throw "Model size is invalid; expected roughly 1.4-1.8 GB for $env:MODEL_FILE."
+          foreach ($p in @(
+            "runtime/models/Gemma3-1B-FP16-bnb-4bit-Q4_K_M.gguf",
+            "runtime/models/harrier-oss-v1-0.6b.Q4_K_M.gguf"
+          )) {
+            $bytes = [System.IO.File]::ReadAllBytes($p)
+            if ($bytes.Length -lt 4 -or $bytes[0] -ne 0x47 -or $bytes[1] -ne 0x47 -or $bytes[2] -ne 0x55 -or $bytes[3] -ne 0x46) {
+              throw "Invalid GGUF file: $p"
+            }
+            Write-Host ("{0}: {1:N0} bytes" -f $p, (Get-Item $p).Length)
           }
-
-          $stream = [System.IO.File]::OpenRead($modelPath)
-          try {
-            [byte[]]$magic = New-Object byte[] 4
-            [void]$stream.Read($magic, 0, 4)
-          } finally {
-            $stream.Dispose()
-          }
-          if ($magic[0] -ne 0x47 -or $magic[1] -ne 0x47 -or $magic[2] -ne 0x55 -or $magic[3] -ne 0x46) {
-            throw "Downloaded model is not a valid GGUF file."
-          }
-
-          @"
-          Parin MindMap local AI bundle
-
-          Base model: Microsoft Phi-3-mini-4k-instruct
-          Quantization: Q3_K_S
-          Quantized GGUF: bartowski/Phi-3-mini-4k-instruct-GGUF
-          Model license: MIT
-          Original model: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
-          Quantized model: https://huggingface.co/bartowski/Phi-3-mini-4k-instruct-GGUF
-
-          Runtime: llama.cpp
-          Runtime license: MIT
-          Runtime source: https://github.com/ggml-org/llama.cpp
-
-          The model is bundled inside the Windows installer. Review the component licenses and notices before redistributing modified builds.
-          "@ | Set-Content -Encoding UTF8 runtime/ai-notice.txt
 
       - name: Build Parin MindMap
         shell: pwsh
