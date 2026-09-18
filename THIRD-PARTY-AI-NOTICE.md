@@ -2,9 +2,9 @@
 
 Parin MindMap's packaged Windows build includes a local AI runtime and model.
 
-- Model: **Ministral 3 3B Instruct 2512 GGUF**, Q4_K_M
-- Model license: **Apache 2.0**
-- Model source: https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF
+- Model: **Microsoft Phi-4-mini-instruct**, GGUF Q4_K_M
+- Model license: **MIT**
+- Model source: https://huggingface.co/microsoft/Phi-4-mini-instruct
 - Runtime: **llama.cpp**
 - Runtime license: **MIT**
 - Runtime source: https://github.com/ggml-org/llama.cpp
