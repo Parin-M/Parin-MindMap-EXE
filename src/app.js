@@ -113,7 +113,8 @@
     lang: localStorage.getItem("parin.lang") || "en",
     pdfTab: "pdf",
     aiTask: "map",
-    aiRaw: ""
+    aiRaw: "",
+    aiEnabled: localStorage.getItem("parin.aiEnabled") !== "false"
   };
 
   function makeNode(label, depth=0) {
