@@ -313,6 +313,7 @@
       g.addEventListener("click",(ev)=>{ev.stopPropagation(); state.selected=g.dataset.id; render();});
     });
     updateInspector();
+    updateCopilotContext();
     updateExportPreview();
     countStats();
   }
@@ -785,7 +786,17 @@ ${context}`;
     el("undoBtn").addEventListener("click",undo);el("redoBtn").addEventListener("click",redo);el("addChildBtn").addEventListener("click",addChild);
     el("addSiblingBtn").addEventListener("click",addSibling);el("deleteNodeBtn").addEventListener("click",deleteSelected);el("focusBtn").addEventListener("click",fitMap);
     el("fitBtn").addEventListener("click",fitMap);el("zoomInBtn").addEventListener("click",()=>zoomBy(.1));el("zoomOutBtn").addEventListener("click",()=>zoomBy(-.1));
-    el("aiTopBtn").addEventListener("click",()=>openModal("aiModal"));el("runAIBtn").addEventListener("click",runAI);el("applyAIResult").addEventListener("click",applyAIResult);
+    el("aiTopBtn").addEventListener("click",openCopilot);
+    el("closeCopilot").addEventListener("click",closeCopilot);
+    el("aiToggleBtn").addEventListener("click",()=>setAIEnabled(!state.aiEnabled));
+    el("copilotSend").addEventListener("click",runCopilot);
+    el("copilotInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();runCopilot();}});
+    $all("[data-copilot-task]").forEach(b=>b.addEventListener("click",()=>{
+      const prompts={map:"Build a complete mind map from my current topic.",expand:"Expand the selected node with useful branches.",gaps:"Find knowledge gaps and missing branches.",plan:"Turn this map into an actionable plan."};
+      el("copilotInput").value=prompts[b.dataset.copilotTask]||"";
+      el("copilotInput").focus();
+    }));
+    el("copilotSettings").addEventListener("click",()=>openModal("settingsModal"));el("runAIBtn").addEventListener("click",runAI);el("applyAIResult").addEventListener("click",applyAIResult);
     el("settingsBtn").addEventListener("click",()=>openModal("settingsModal"));el("saveSettingsBtn").addEventListener("click",saveSettings);
     el("languageSelect").addEventListener("change",e=>setLanguage(e.target.value));el("settingsLanguage").addEventListener("change",e=>setLanguage(e.target.value));
     el("themeBtn").addEventListener("click",()=>{setTheme(state.theme==="aurora"?"graphite":state.theme==="graphite"?"paper":"aurora")});
