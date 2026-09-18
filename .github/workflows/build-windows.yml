@@ -1,0 +1,99 @@
+name: Build Parin MindMap (Windows)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    env:
+      LLAMA_REF: "2567073"
+      MODEL_URL: "https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF/resolve/main/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf"
+    steps:
+      - name: Checkout Parin MindMap
+        uses: actions/checkout@v4
+
+      - name: Setup Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install Electron dependencies
+        run: npm ci
+
+      - name: Checkout llama.cpp Windows 7 compatible revision
+        shell: pwsh
+        run: |
+          git clone --depth 1 https://github.com/ggml-org/llama.cpp.git llama-src
+          Set-Location llama-src
+          git fetch --no-tags origin $env:LLAMA_REF
+          git checkout $env:LLAMA_REF
+
+      - name: Configure llama.cpp for Windows 7
+        shell: pwsh
+        run: |
+          cmake -S llama-src -B llama-build `
+            -DGGML_NATIVE=OFF `
+            -DGGML_OPENMP=OFF `
+            -DGGML_BLAS=OFF `
+            -DGGML_CUDA=OFF `
+            -DGGML_VULKAN=OFF `
+            -DLLAMA_CURL=OFF `
+            -DLLAMA_BUILD_SERVER=ON `
+            -DLLAMA_BUILD_TESTS=OFF `
+            -DLLAMA_BUILD_EXAMPLES=ON `
+            -DGGML_WIN_VER=_WIN32_WINNT_WIN7 `
+            -DCMAKE_C_FLAGS="/D_WIN32_WINNT=0x0601 /DWINVER=0x0601" `
+            -DCMAKE_CXX_FLAGS="/D_WIN32_WINNT=0x0601 /DWINVER=0x0601" `
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+
+      - name: Build llama-server
+        run: cmake --build llama-build --config Release --target llama-server --parallel
+
+      - name: Prepare bundled AI runtime
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path runtime/llama | Out-Null
+          New-Item -ItemType Directory -Force -Path runtime/models | Out-Null
+          Copy-Item llama-build/bin/Release/llama-server.exe runtime/llama/llama-server.exe
+          Invoke-WebRequest -Uri $env:MODEL_URL -OutFile runtime/models/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf -UseBasicParsing
+          @"
+          Parin MindMap local AI bundle
+
+          Model: Ministral 3 3B Instruct 2512 GGUF
+          Quantization: Q4_K_M
+          Model license: Apache 2.0
+          Model source: https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF
+
+          Runtime: llama.cpp
+          Runtime license: MIT
+          Runtime source: https://github.com/ggml-org/llama.cpp
+
+          The application uses the bundled model locally by default. Review the model and runtime licenses before redistributing modified builds.
+          "@ | Set-Content -Encoding UTF8 runtime/ai-notice.txt
+
+      - name: Build Parin MindMap
+        run: npm run dist:win7
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Parin-MindMap-Windows
+          path: dist/Parin-MindMap-Setup-*.exe
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload unpacked build for diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: Parin-MindMap-Unpacked
+          path: dist/win-unpacked/
+          if-no-files-found: warn
+          retention-days: 7
