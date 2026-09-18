@@ -35,6 +35,13 @@ jobs:
           git fetch --no-tags origin $env:LLAMA_REF
           git checkout $env:LLAMA_REF
 
+      - name: Syntax check
+        shell: pwsh
+        run: |
+          node --check ../src/app.js
+          node --check ../electron/main.cjs
+          node --check ../electron/ai-local.cjs
+
       - name: Configure llama.cpp for Windows 7
         shell: pwsh
         run: |
