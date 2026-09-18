@@ -488,7 +488,7 @@ ${context}`;
         {role:"system",content:"You are Parin MindMap AI. Be concise, structural, and useful. Never invent sources."},
         {role:"user",content:prompt}
       ],temperature:0.35};
-      const data=await window.parinAPI.aiRequest({endpoint,apiKey,body});
+      const data=await window.parinAPI.aiRequest({endpoint,apiKey,local:el("aiProvider").value==="local",body});
       const text=data?.choices?.[0]?.message?.content || data?.output_text || data?.response || JSON.stringify(data,null,2);
       state.aiRaw=String(text);
       el("aiResultText").textContent=state.aiRaw;
