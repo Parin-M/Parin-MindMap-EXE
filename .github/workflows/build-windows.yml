@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 90
     env:
       LLAMA_REF: "2567073"
-      MODEL_URL: "https://huggingface.co/inferenceport-ai/Phi-4-mini-instruct-Q4_K_M-GGUF/resolve/main/phi-4-mini-instruct-q4_k_m.gguf"
+      MODEL_URL: "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf"
     steps:
       - name: Checkout Parin MindMap
         uses: actions/checkout@v4
@@ -62,15 +62,14 @@ jobs:
           New-Item -ItemType Directory -Force -Path runtime/llama | Out-Null
           New-Item -ItemType Directory -Force -Path runtime/models | Out-Null
           Copy-Item llama-build/bin/Release/llama-server.exe runtime/llama/llama-server.exe
-          Invoke-WebRequest -Uri $env:MODEL_URL -OutFile runtime/models/Phi-4-mini-instruct-Q4_K_M.gguf -UseBasicParsing
+          Invoke-WebRequest -Uri $env:MODEL_URL -OutFile runtime/models/Phi-3-mini-4k-instruct-q4.gguf -UseBasicParsing
           @"
           Parin MindMap local AI bundle
 
-          Model: Microsoft Phi-4-mini-instruct GGUF
+          Model: Microsoft Phi-3-mini-4k-instruct GGUF
           Quantization: Q4_K_M
           Model license: MIT
-          Original model: https://huggingface.co/microsoft/Phi-4-mini-instruct
-          GGUF conversion source: https://huggingface.co/inferenceport-ai/Phi-4-mini-instruct-Q4_K_M-GGUF
+          Original model + GGUF: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf
 
           Runtime: llama.cpp
           Runtime license: MIT
