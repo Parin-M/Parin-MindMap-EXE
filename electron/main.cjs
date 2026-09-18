@@ -92,6 +92,54 @@ ipcMain.handle("pdf:export", async (_event, payload) => {
   return { canceled: false, filePath: result.filePath };
 });
 
+
+function requestAI(urlString, apiKey, body) {
+  return new Promise((resolve, reject) => {
+    const { URL } = require("url");
+    const parsed = new URL(urlString);
+    const transport = parsed.protocol === "https:" ? require("https") : require("http");
+    const req = transport.request({
+      method: "POST",
+      hostname: parsed.hostname,
+      port: parsed.port || (parsed.protocol === "https:" ? 443 : 80),
+      path: parsed.pathname + parsed.search,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...(apiKey ? { "Authorization": "Bearer " + apiKey } : {})
+      },
+      timeout: 120000
+    }, (res) => {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", chunk => data += chunk);
+      res.on("end", () => {
+        try {
+          const parsedBody = JSON.parse(data || "{}");
+          if (res.statusCode >= 400) {
+            reject(new Error(parsedBody?.error?.message || parsedBody?.message || ("HTTP " + res.statusCode)));
+            return;
+          }
+          resolve(parsedBody);
+        } catch {
+          reject(new Error("AI endpoint returned invalid JSON."));
+        }
+      });
+    });
+    req.on("timeout", () => req.destroy(new Error("AI request timed out.")));
+    req.on("error", reject);
+    req.write(JSON.stringify(body));
+    req.end();
+  });
+}
+
+ipcMain.handle("ai:request", async (_event, payload) => {
+  const endpoint = String(payload?.endpoint || "").trim();
+  if (!endpoint) throw new Error("AI endpoint is not configured.");
+  const body = payload?.body && typeof payload.body === "object" ? payload.body : {};
+  return await requestAI(endpoint, String(payload?.apiKey || "").trim(), body);
+});
+
 ipcMain.handle("app:open-external", async (_event, url) => {
   if (/^https?:/i.test(url)) await shell.openExternal(url);
   return true;
