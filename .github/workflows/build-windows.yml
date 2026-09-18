@@ -63,13 +63,13 @@ jobs:
           New-Item -ItemType Directory -Force -Path runtime/llama | Out-Null
           New-Item -ItemType Directory -Force -Path runtime/models | Out-Null
           Copy-Item llama-build/bin/Release/llama-server.exe runtime/llama/llama-server.exe
-          Invoke-WebRequest -Uri $env:MODEL_URL -OutFile runtime/models/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf -UseBasicParsing
+          Invoke-WebRequest -Uri $env:MODEL_URL -OutFile runtime/models/Phi-4-mini-instruct-Q4_K_M.gguf -UseBasicParsing
           @"
           Parin MindMap local AI bundle
 
           Model: Microsoft Phi-4-mini-instruct GGUF
           Quantization: Q4_K_M
-          Model license: Apache 2.0
+          Model license: MIT
           Original model: https://huggingface.co/microsoft/Phi-4-mini-instruct
           GGUF conversion source: https://huggingface.co/inferenceport-ai/Phi-4-mini-instruct-Q4_K_M-GGUF
 
