@@ -749,8 +749,8 @@ ${context}`;
       : "";
     const prompt="You are Parin Copilot, an expert mind-map and productivity assistant. Work with the current map and give actionable output. Interface language: "+(LANGS[state.lang]?.label||"English")+".\n\n"+
       contextText+"Current map:\n"+context+"\n\nUser request:\n"+textIn+
-      "\n\nWhen the request implies a structural map edit, prefer compact JSON in this form:\n"+
-      '{"action":"add_children","children":[{"label":"...","note":""},{"label":"...","note":""}]}\nFor other requests, answer naturally.';
+      "\n\nFor normal questions, answer naturally. For map changes, NEVER execute anything. Propose a supervised plan using this JSON schema:\n"+
+      '{"type":"agent_plan","summary":"string","actions":[{"op":"add_child|add_sibling|edit_node|delete_node|move_node|set_style|collapse_node|expand_node","targetId":"id or null","parentId":"id or null","newParentId":"id or null","label":"string","note":"string","color":"#RRGGBB","priority":"normal|high|low","reason":"brief explanation"}]}';
     try{
       const data=await window.parinAPI.aiRequest({
         endpoint,apiKey,
@@ -765,14 +765,19 @@ ${context}`;
       try{
         const parsed=extractJson(answer);
         if(parsed?.action==="add_children"&&Array.isArray(parsed.children)){
-          const hit=findNode(state.selected);
-          if(hit){
-            mutate(()=>{
-              hit.node.children.push(...parsed.children.map(x=>jsonToNode(x,1)));
-              hit.node.collapsed=false;
-            });
-            appendCopilot("assistant","✓ Added the suggested branches to the selected node.");
-          }
+          state.agentPlan = parsed.children.map(x=>({
+            op:"add_child", parentId:state.selected,
+            label:String(x.label||"New idea"), note:String(x.note||""),
+            description:"AI suggested this branch. Review it before applying."
+          }));
+          renderAgentPlan();
+          appendCopilot("assistant","I prepared a supervised change plan below. Nothing was changed yet.");
+        }
+        if(parsed?.type==="agent_plan"&&Array.isArray(parsed.actions)){
+          state.agentPlan=parsed.actions.map(a=>({...a,description:a.reason||agentActionLabel(a)}))
+            .filter(a=>validateAgentAction(a).ok).slice(0,30);
+          renderAgentPlan();
+          appendCopilot("assistant","I prepared a supervised Agent plan. Review the proposed changes before applying them.");
         }
       }catch{}
     }catch(e){
