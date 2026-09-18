@@ -11,9 +11,10 @@ permissions:
 jobs:
   build-windows:
     runs-on: windows-2022
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
-      MODEL_URL: "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf"
+      MODEL_REPO: "bartowski/Phi-3-mini-4k-instruct-GGUF"
+      MODEL_FILE: "Phi-3-mini-4k-instruct-Q3_K_S.gguf"
     steps:
       - name: Checkout Parin MindMap
         uses: actions/checkout@v4
@@ -73,23 +74,67 @@ jobs:
       - name: Prepare bundled AI runtime
         shell: pwsh
         run: |
+          $modelPath = "runtime/models/$env:MODEL_FILE"
           New-Item -ItemType Directory -Force -Path runtime/llama | Out-Null
           New-Item -ItemType Directory -Force -Path runtime/models | Out-Null
           Copy-Item llama-build/bin/Release/llama-server.exe runtime/llama/llama-server.exe
-          Invoke-WebRequest -Uri $env:MODEL_URL -OutFile runtime/models/Phi-3-mini-4k-instruct-q4.gguf -UseBasicParsing
+
+          python -m pip install --upgrade "huggingface_hub[hf_xet]"
+
+          @'
+          from huggingface_hub import hf_hub_download
+          import os
+
+          repo_id = os.environ["MODEL_REPO"]
+          filename = os.environ["MODEL_FILE"]
+          local_dir = os.path.join("runtime", "models")
+
+          path = hf_hub_download(
+              repo_id=repo_id,
+              filename=filename,
+              local_dir=local_dir,
+              local_dir_use_symlinks=False,
+              resume_download=True,
+          )
+          print(f"Downloaded model to: {path}")
+          '@ | python -
+
+          if (!(Test-Path $modelPath)) {
+            throw "Model download failed: $modelPath does not exist."
+          }
+
+          $modelSize = (Get-Item $modelPath).Length
+          Write-Host ("Model size: {0:N0} bytes" -f $modelSize)
+          if ($modelSize -lt 1400000000 -or $modelSize -gt 1800000000) {
+            throw "Model size is invalid; expected roughly 1.4-1.8 GB for $env:MODEL_FILE."
+          }
+
+          $stream = [System.IO.File]::OpenRead($modelPath)
+          try {
+            [byte[]]$magic = New-Object byte[] 4
+            [void]$stream.Read($magic, 0, 4)
+          } finally {
+            $stream.Dispose()
+          }
+          if ($magic[0] -ne 0x47 -or $magic[1] -ne 0x47 -or $magic[2] -ne 0x55 -or $magic[3] -ne 0x46) {
+            throw "Downloaded model is not a valid GGUF file."
+          }
+
           @"
           Parin MindMap local AI bundle
 
-          Model: Microsoft Phi-3-mini-4k-instruct GGUF
-          Quantization: Q4_K_M
+          Base model: Microsoft Phi-3-mini-4k-instruct
+          Quantization: Q3_K_S
+          Quantized GGUF: bartowski/Phi-3-mini-4k-instruct-GGUF
           Model license: MIT
-          Original model + GGUF: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf
+          Original model: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
+          Quantized model: https://huggingface.co/bartowski/Phi-3-mini-4k-instruct-GGUF
 
           Runtime: llama.cpp
           Runtime license: MIT
           Runtime source: https://github.com/ggml-org/llama.cpp
 
-          The application uses the bundled model locally by default. Review the model and runtime licenses before redistributing modified builds.
+          The model is bundled inside the Windows installer. Review the component licenses and notices before redistributing modified builds.
           "@ | Set-Content -Encoding UTF8 runtime/ai-notice.txt
 
       - name: Build Parin MindMap
