@@ -159,8 +159,31 @@
         </div>
       </div>
       <div class="copilot-status" id="copilotStatus"><span class="status-dot"></span><span>AI is enabled</span></div>
+      <div class="copilot-modebar">
+        <label><span>Agent mode</span>
+          <select id="agentMode">
+            <option value="suggest">Suggest only</option>
+            <option value="each">Approve each action</option>
+            <option value="batch">Approve selected batch</option>
+          </select>
+        </label>
+        <button class="agent-stop" id="agentStopBtn" disabled>Stop</button>
+      </div>
       <div class="copilot-context">
         <span>Context</span><strong id="copilotContext">Current map</strong>
+      </div>
+      <div class="agent-banner" id="agentBanner">
+        <div><strong>Supervised Agent</strong><small>AI proposes changes first. You stay in control.</small></div>
+        <button id="clearAgentPlan" title="Clear plan">×</button>
+      </div>
+      <div class="agent-plan hidden" id="agentPlan">
+        <div class="agent-plan-head"><span id="agentPlanTitle">Proposed changes</span><span id="agentPlanCount">0 actions</span></div>
+        <div class="agent-actions" id="agentActions"></div>
+        <div class="agent-plan-footer">
+          <button class="secondary-btn" id="rejectAgentBtn">Reject all</button>
+          <button class="secondary-btn" id="approveSelectedBtn">Approve selected</button>
+          <button class="primary-action" id="approveAllBtn">Approve all</button>
+        </div>
       </div>
       <div class="copilot-chat" id="copilotChat">
         <div class="copilot-welcome"><div class="welcome-icon">✦</div><strong>What should we do with your map?</strong><p>Ask for ideas, structure, analysis, writing, study help, or direct edits.</p></div>
