@@ -14,7 +14,7 @@ function getPaths() {
   if (isPackaged()) {
     return {
       exe: path.join(process.resourcesPath, "ai", "llama-server.exe"),
-      model: path.join(process.resourcesPath, "ai", "models", "Phi-4-mini-instruct-Q4_K_M.gguf"),
+      model: path.join(process.resourcesPath, "ai", "models", "Phi-3-mini-4k-instruct-q4.gguf"),
       notice: path.join(process.resourcesPath, "ai", "ai-notice.txt")
     };
   }
