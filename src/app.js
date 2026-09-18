@@ -114,7 +114,10 @@
     pdfTab: "pdf",
     aiTask: "map",
     aiRaw: "",
-    aiEnabled: localStorage.getItem("parin.aiEnabled") !== "false"
+    aiEnabled: localStorage.getItem("parin.aiEnabled") !== "false",
+    agentMode: localStorage.getItem("parin.agentMode") || "suggest",
+    agentPlan: [],
+    agentRunning: false
   };
 
   function makeNode(label, depth=0) {
@@ -468,6 +471,169 @@
     const ctx=el("copilotContext");
     if(ctx) ctx.textContent=n?.label||"Current map";
   }
+  function nodeCatalog(){
+    return flatten(state.root).map((item)=>({
+      id:item.node.id,
+      parentId:item.parent?.id||null,
+      depth:item.depth,
+      label:item.node.label,
+      note:item.node.note||"",
+      children:item.node.children.length
+    }));
+  }
+
+  function agentActionLabel(a){
+    const map={
+      add_child:"Add child",
+      add_sibling:"Add sibling",
+      edit_node:"Edit node",
+      delete_node:"Delete node",
+      move_node:"Move node",
+      set_style:"Change style",
+      collapse_node:"Collapse node",
+      expand_node:"Expand node"
+    };
+    return map[a?.op]||String(a?.op||"Action");
+  }
+
+  function validateAgentAction(a){
+    if(!a||typeof a!=="object"||typeof a.op!=="string") return {ok:false,error:"Invalid action"};
+    const allowed=new Set(["add_child","add_sibling","edit_node","delete_node","move_node","set_style","collapse_node","expand_node"]);
+    if(!allowed.has(a.op)) return {ok:false,error:"Unsupported action: "+a.op};
+    const target=a.targetId?findNode(a.targetId):null;
+    if(["edit_node","delete_node","move_node","set_style","collapse_node","expand_node"].includes(a.op) && !target) return {ok:false,error:"Target node not found"};
+    if(a.op==="delete_node" && !target.parent) return {ok:false,error:"Root cannot be deleted"};
+    if(a.op==="move_node"){
+      const np=findNode(a.newParentId);
+      if(!np) return {ok:false,error:"New parent not found"};
+      if(np.node.id===a.targetId || isDescendant(target.node,np.node)) return {ok:false,error:"Cannot move a node inside itself"};
+    }
+    if(["add_child","add_sibling"].includes(a.op) && !String(a.label||"").trim()) return {ok:false,error:"New node needs a label"};
+    if(a.op==="set_style" && a.color && !/^#[0-9a-f]{6}$/i.test(a.color)) return {ok:false,error:"Invalid color"};
+    return {ok:true};
+  }
+
+  function isDescendant(rootCandidate,node){
+    if(!rootCandidate) return false;
+    if(rootCandidate===node) return true;
+    return rootCandidate.children.some(c=>isDescendant(c,node));
+  }
+
+  function executeAgentAction(a){
+    const check=validateAgentAction(a);
+    if(!check.ok) throw new Error(check.error);
+    if(a.op==="add_child"){
+      const parent=findNode(a.parentId||state.selected)?.node||state.root;
+      const n=makeNode(String(a.label).trim(),flatten(parent).length+1);
+      n.note=String(a.note||"");
+      if(a.color)n.color=a.color;
+      if(a.priority)n.priority=a.priority;
+      parent.children.push(n); parent.collapsed=false; state.selected=n.id; return "Added child: "+n.label;
+    }
+    if(a.op==="add_sibling"){
+      const hit=findNode(a.targetId); const parent=hit.parent;
+      const n=makeNode(String(a.label).trim(),0);
+      n.note=String(a.note||""); if(a.color)n.color=a.color; if(a.priority)n.priority=a.priority;
+      const idx=parent.children.findIndex(c=>c.id===hit.node.id); parent.children.splice(idx+1,0,n); state.selected=n.id; return "Added sibling: "+n.label;
+    }
+    if(a.op==="edit_node"){
+      const n=findNode(a.targetId).node; if(a.label!=null)n.label=String(a.label); if(a.note!=null)n.note=String(a.note); state.selected=n.id; return "Edited: "+n.label;
+    }
+    if(a.op==="delete_node"){
+      const hit=findNode(a.targetId); hit.parent.children=hit.parent.children.filter(c=>c.id!==hit.node.id); state.selected=hit.parent.id; return "Deleted: "+hit.node.label;
+    }
+    if(a.op==="move_node"){
+      const hit=findNode(a.targetId), np=findNode(a.newParentId);
+      hit.parent.children=hit.parent.children.filter(c=>c.id!==hit.node.id);
+      np.node.children.push(hit.node); np.node.collapsed=false; state.selected=hit.node.id; return "Moved: "+hit.node.label;
+    }
+    if(a.op==="set_style"){
+      const n=findNode(a.targetId).node; if(a.color)n.color=a.color; if(a.priority)n.priority=a.priority; return "Styled: "+n.label;
+    }
+    if(a.op==="collapse_node"){
+      const n=findNode(a.targetId).node;n.collapsed=true;return "Collapsed: "+n.label;
+    }
+    if(a.op==="expand_node"){
+      const n=findNode(a.targetId).node;n.collapsed=false;return "Expanded: "+n.label;
+    }
+    throw new Error("Unsupported action");
+  }
+
+  function renderAgentPlan(){
+    const panel=el("agentPlan"), list=el("agentActions");
+    if(!panel||!list)return;
+    const plan=state.agentPlan||[];
+    panel.classList.toggle("hidden",plan.length===0);
+    el("agentPlanCount").textContent=plan.length+" action"+(plan.length===1?"":"s");
+    list.innerHTML=plan.map((a,i)=>`<label class="agent-action">
+      <input type="checkbox" data-agent-index="${i}" ${a.approved?"":"checked"}>
+      <span><strong>${esc(agentActionLabel(a))}: ${esc(a.label||a.targetLabel||a.targetId||"")}</strong><small>${esc(a.description||a.reason||"Review before applying.")}</small></span>
+    </label>`).join("");
+  }
+
+  function clearAgentPlan(){
+    state.agentPlan=[]; state.agentRunning=false; renderAgentPlan();
+    const stop=el("agentStopBtn"); if(stop)stop.disabled=true;
+  }
+
+  function getCheckedAgentIndexes(){
+    return $all("[data-agent-index]").filter(x=>x.checked).map(x=>Number(x.dataset.agentIndex));
+  }
+
+  function applyApprovedAgentActions(mode){
+    const indexes=getCheckedAgentIndexes();
+    if(!indexes.length){toast("Select at least one proposed action.");return;}
+    const ordered = mode==="each" ? [indexes[0]] : indexes;
+    const actions=ordered.map(i=>state.agentPlan[i]).filter(Boolean);
+    const before=snapshot();
+    const results=[];
+    state.agentRunning=true;
+    el("agentStopBtn").disabled=false;
+    for(const action of actions){
+      if(!state.agentRunning) break;
+      try{results.push("✓ "+executeAgentAction(action)); action.approved=true;}catch(e){results.push("✕ "+(e.message||"Action failed"));}
+    }
+    if(results.some(x=>x.startsWith("✓"))){
+      state.history.push(before); state.future.length=0;
+      localStorage.setItem("parin.autosave",JSON.stringify({title:state.title,root:state.root,theme:state.theme,layout:state.layout}));
+    }
+    state.agentRunning=false; el("agentStopBtn").disabled=true;
+    appendCopilot("assistant",results.join("\n")||"No actions applied.");
+    state.agentPlan = state.agentPlan.filter(a=>!a.approved);
+    render();
+    renderAgentPlan();
+  }
+
+  async function proposeAgentPlan(userRequest){
+    if(!state.aiEnabled){toast("AI is disabled.");return;}
+    const endpoint=el("aiEndpoint").value.trim(), apiKey=el("aiKey").value.trim();
+    const model=el("aiModel").value.trim()||"Phi-3-mini-4k-instruct";
+    const selected=findNode(state.selected)?.node;
+    const prompt="You are the supervised Parin MindMap Agent. NEVER directly edit the map. Return ONLY JSON with this schema: "+
+      '{"type":"agent_plan","summary":"string","actions":[{"op":"add_child|add_sibling|edit_node|delete_node|move_node|set_style|collapse_node|expand_node","targetId":"id or null","parentId":"id or null","newParentId":"id or null","label":"string","note":"string","color":"#RRGGBB","priority":"normal|high|low","reason":"brief explanation"}]}. '+
+      "Use only IDs from the node catalog. Keep actions minimal and safe. Never delete the root. Interface language: "+(LANGS[state.lang]?.label||"English")+"\n"+
+      "Selected node: "+(selected?.label||"none")+"\nNode catalog:\n"+JSON.stringify(nodeCatalog())+
+      "\nCurrent request:\n"+String(userRequest||"");
+    try{
+      const data=await window.parinAPI.aiRequest({endpoint,apiKey,local:el("aiProvider").value==="local",body:{model,messages:[
+        {role:"system",content:"You are a cautious, supervised UI agent. Plan operations; do not act without approval."},
+        {role:"user",content:prompt}
+      ],temperature:.15}});
+      const raw=String(data?.choices?.[0]?.message?.content||data?.output_text||data?.response||JSON.stringify(data,null,2));
+      const parsed=extractJson(raw);
+      if(parsed?.type!=="agent_plan"||!Array.isArray(parsed.actions))throw new Error("AI did not return a valid agent plan.");
+      const valid=[];
+      for(const a of parsed.actions.slice(0,30)){
+        const v=validateAgentAction(a);
+        if(v.ok) valid.push({...a,description:a.reason||agentActionLabel(a)});
+      }
+      state.agentPlan=valid;
+      renderAgentPlan();
+      if(parsed.summary) appendCopilot("assistant","Agent plan: "+parsed.summary+"\n\nReview the proposed actions below before applying them.");
+      if(!valid.length) appendCopilot("assistant","No safe map changes were proposed.");
+    }catch(e){appendCopilot("assistant","Agent planning error: "+(e.message||"request failed"));}
+  }
+
   function appendCopilot(role,text){
     const chat=el("copilotChat");
     if(!chat) return;
