@@ -89,24 +89,10 @@ body[data-theme="emerald"]{--bg:#07130f;--panel:#0c1d16;--panel2:#102a20;--strok
 body[data-theme="mono"]{--bg:#111111;--panel:#181818;--panel2:#222;--stroke:#3a3a3a;--text:#f5f5f5;--muted:#9a9a9a;--accent:#f2f2f2;--accent2:#bdbdbd;--canvas-bg:radial-gradient(900px 600px at 55% 40%,rgba(255,255,255,.05),transparent 62%),linear-gradient(180deg,#141414,#0c0c0c)}
 
 body[data-theme] .canvas-wrap{background:var(--canvas-bg)}
-body[data-theme] .sidebar,
-body[data-theme] .topbar,
-body[data-theme] .inspector,
-body[data-theme] .modal,
-body[data-theme] .copilot-panel{background:color-mix(in srgb,var(--panel) 96%,transparent);color:var(--text)}
-body[data-theme] .field input,
-body[data-theme] .field textarea,
-body[data-theme] .field select,
-body[data-theme] .ai-output,
-body[data-theme] .copilot-input-wrap textarea,
-body[data-theme] .copilot-modebar select{background:color-mix(in srgb,var(--bg) 88%,#ffffff 12%);color:var(--text);border-color:var(--stroke)}
-body[data-theme] .nav-btn:hover,
-body[data-theme] .ghost-btn:hover,
-body[data-theme] .square-btn:hover,
-body[data-theme] .tool-btn:hover{background:color-mix(in srgb,var(--panel2) 88%,#ffffff 12%)}
-body[data-theme] .nav-btn.active,
-body[data-theme] .export-tab.active,
-body[data-theme] .ai-task.active{background:color-mix(in srgb,var(--accent) 18%,var(--panel2))}
+body[data-theme] .sidebar,body[data-theme] .topbar,body[data-theme] .inspector,body[data-theme] .modal,body[data-theme] .copilot-panel{background:var(--panel);color:var(--text)}
+body[data-theme] .field input,body[data-theme] .field textarea,body[data-theme] .field select,body[data-theme] .ai-output,body[data-theme] .copilot-input-wrap textarea,body[data-theme] .copilot-modebar select{background:var(--bg);color:var(--text);border-color:var(--stroke)}
+body[data-theme] .nav-btn:hover,body[data-theme] .ghost-btn:hover,body[data-theme] .square-btn:hover,body[data-theme] .tool-btn:hover{background:var(--panel2)}
+body[data-theme] .nav-btn.active,body[data-theme] .export-tab.active,body[data-theme] .ai-task.active{background:var(--panel2);border-color:var(--accent)}
 body[data-theme] .settings-section,
 body[data-theme] .modal-head,
 body[data-theme] .modal-footer,
@@ -115,17 +101,15 @@ body[data-theme] .copilot-status,
 body[data-theme] .copilot-context,
 body[data-theme] .copilot-modebar,
 body[data-theme] .copilot-footer{border-color:var(--stroke)}
-body[data-theme] .ai-task-list,
-body[data-theme] .copilot-input-wrap,
-body[data-theme] .copilot-suggestions{background:color-mix(in srgb,var(--bg) 82%,var(--panel) 18%)}
+body[data-theme] .ai-task-list,body[data-theme] .copilot-input-wrap,body[data-theme] .copilot-suggestions{background:var(--bg)}
 body[data-theme="paper"] .sidebar,
 body[data-theme="paper"] .topbar,
 body[data-theme="paper"] .inspector{background:#f7f8fb;color:#172033;border-color:#dce1eb}
 body[data-theme="paper"] .modal,
 body[data-theme="paper"] .copilot-panel{background:#fff;color:#172033}
 body[data-theme="paper"] .canvas-wrap{background:var(--canvas-bg)}
-body[data-theme] .about-card{border-color:var(--stroke);background:color-mix(in srgb,var(--panel2) 82%,transparent)}
-body[data-theme] .about-features span{border-color:var(--stroke);background:color-mix(in srgb,var(--bg) 82%,transparent);color:var(--muted)}
+body[data-theme] .about-card{border-color:var(--stroke);background:var(--panel2)}
+body[data-theme] .about-features span{border-color:var(--stroke);background:var(--bg);color:var(--muted)}
 
 
 .about-card{border:1px solid #28324a;background:#111a2c;border-radius:15px;padding:15px}
@@ -134,3 +118,8 @@ body[data-theme] .about-features span{border-color:var(--stroke);background:colo
 .about-credit{font-size:11px;line-height:1.65;color:#9aa6bb;margin:13px 0}
 .about-features{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 13px}.about-features span{font-size:9px;border:1px solid #2a3550;background:#0b1120;color:#7f8ca4;padding:6px 8px;border-radius:8px}
 .about-github{width:100%;justify-content:center}
+
+.ai-task-search{width:100%;margin:0 0 9px;padding:9px 10px;border:1px solid #27324a;background:#090f1d;color:#e8edf8;border-radius:9px;outline:none;font-size:10px}
+.ai-task-search:focus{border-color:#695fd0;box-shadow:0 0 0 3px rgba(139,124,255,.08)}
+body[data-theme] .ai-task-search{background:var(--bg);color:var(--text);border-color:var(--stroke)}
+body[data-theme="paper"] .ai-task-search{background:#fff;color:#172033;border-color:#d6dce7}
