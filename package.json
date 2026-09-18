@@ -39,7 +39,6 @@
           ]
         }
       ],
-      "icon": "assets/icon.ico",
       "artifactName": "Parin-MindMap-Setup-${version}-${arch}.${ext}"
     },
     "nsis": {
