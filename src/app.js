@@ -1028,7 +1028,7 @@ ${context}`;
 
   function loadSettings(){
     const s=JSON.parse(localStorage.getItem("parin.ai")||"null")||{
-      provider:"local",model:"parin-gemma3-assistant",endpoint:"http://127.0.0.1:8080/v1/chat/completions",key:""
+      provider:"local",model:"parin-gemma3-assistant",endpoint:"http://127.0.0.1:38741/v1/chat/completions",key:""
     };
     el("aiProvider").value=s.provider;el("aiModel").value=s.model;el("aiEndpoint").value=s.endpoint;el("aiKey").value=s.key;
     el("settingsProvider").value=s.provider;el("settingsModel").value=s.model;el("settingsEndpoint").value=s.endpoint;el("settingsKey").value=s.key;
@@ -1045,8 +1045,15 @@ ${context}`;
 
   function setupAIList(){
     const wrap=el("aiTaskList");
-    wrap.innerHTML=AI_TASKS.map(t=>`<button class="ai-task ${t.id==="map"?"active":""}" data-id="${t.id}"><strong>${t.icon} ${t.title}</strong><small>${t.hint}</small></button>`).join("");
-    $all(".ai-task").forEach(b=>b.addEventListener("click",()=>selectAITask(b.dataset.id)));
+    const renderTasks=filter=>{
+      const q=String(filter||"").trim().toLowerCase();
+      const tasks=AI_TASKS.filter(t=>!q||t.title.toLowerCase().includes(q)||t.hint.toLowerCase().includes(q)||t.id.toLowerCase().includes(q));
+      wrap.innerHTML=tasks.map(t=>`<button class="ai-task ${t.id===state.aiTask?"active":""}" data-id="${t.id}"><strong>${t.icon} ${t.title}</strong><small>${t.hint}</small></button>`).join("");
+      $all("#aiTaskList .ai-task").forEach(b=>b.addEventListener("click",()=>selectAITask(b.dataset.id)));
+    };
+    renderTasks("");
+    const search=el("aiTaskSearch");
+    if(search) search.addEventListener("input",()=>renderTasks(search.value));
   }
 
   function setupEvents(){
