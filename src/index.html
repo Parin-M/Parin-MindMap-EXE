@@ -150,56 +150,51 @@
 
     <div class="overlay hidden" id="overlay"></div>
 
+    <aside class="copilot-panel hidden" id="copilotPanel">
+      <div class="copilot-head">
+        <div class="copilot-brand"><span class="copilot-spark">✦</span><div><strong>Parin Copilot</strong><small>AI for your map</small></div></div>
+        <div class="copilot-actions">
+          <button class="icon-btn" id="aiToggleBtn" title="Toggle AI">●</button>
+          <button class="icon-btn" id="closeCopilot">×</button>
+        </div>
+      </div>
+      <div class="copilot-status" id="copilotStatus"><span class="status-dot"></span><span>AI is enabled</span></div>
+      <div class="copilot-context">
+        <span>Context</span><strong id="copilotContext">Current map</strong>
+      </div>
+      <div class="copilot-chat" id="copilotChat">
+        <div class="copilot-welcome"><div class="welcome-icon">✦</div><strong>What should we do with your map?</strong><p>Ask for ideas, structure, analysis, writing, study help, or direct edits.</p></div>
+      </div>
+      <div class="copilot-suggestions" id="copilotSuggestions">
+        <button data-copilot-task="map">Build a mind map</button>
+        <button data-copilot-task="expand">Expand selection</button>
+        <button data-copilot-task="gaps">Find gaps</button>
+        <button data-copilot-task="plan">Make an action plan</button>
+      </div>
+      <div class="copilot-input-wrap">
+        <textarea id="copilotInput" rows="3" placeholder="Ask Parin Copilot…"></textarea>
+        <div class="copilot-input-bottom">
+          <label class="copilot-attach"><input id="copilotUseSelection" type="checkbox" checked> Use selected node</label>
+          <button class="primary-action copilot-send" id="copilotSend"><span>↑</span></button>
+        </div>
+      </div>
+      <div class="copilot-footer">
+        <span>Local AI</span><span>•</span><button id="copilotSettings">Settings</button>
+      </div>
+    </aside>
+
     <section class="modal hidden" id="aiModal">
       <div class="modal-head">
-        <div>
-          <div class="modal-kicker">PARIN AI</div>
-          <h2 data-i18n="aiStudio">AI Studio</h2>
-          <p data-i18n="aiModalCopy">Turn rough ideas into structured thinking.</p>
-        </div>
+        <div><div class="modal-kicker">PARIN AI</div><h2 data-i18n="aiStudio">AI Studio</h2><p>Powerful AI workflows for your map.</p></div>
         <button class="icon-btn" data-close-modal="aiModal">×</button>
       </div>
-      <div class="ai-layout">
-        <div class="ai-task-list" id="aiTaskList"></div>
-        <div class="ai-workbench">
-          <div class="field">
-            <span data-i18n="aiPrompt">Prompt</span>
-            <textarea id="aiPrompt" rows="7" placeholder="What do you want to map?"></textarea>
-          </div>
-          <div class="ai-config-row">
-            <label class="field">
-              <span data-i18n="provider">Provider</span>
-              <select id="aiProvider">
-                <option value="local">Local llama.cpp</option>
-                <option value="compatible">OpenAI-compatible</option>
-                <option value="mistral">Mistral-compatible</option>
-              </select>
-            </label>
-            <label class="field">
-              <span data-i18n="model">Model</span>
-              <input id="aiModel" value="mistral" />
-            </label>
-          </div>
-          <div class="ai-config-row">
-            <label class="field grow">
-              <span data-i18n="endpoint">Endpoint</span>
-              <input id="aiEndpoint" value="http://127.0.0.1:8080/v1/chat/completions" />
-            </label>
-            <label class="field api-key">
-              <span data-i18n="apiKey">API key</span>
-              <input id="aiKey" type="password" placeholder="Optional for local" />
-            </label>
-          </div>
-          <div class="ai-output hidden" id="aiOutput">
-            <div class="output-head"><span data-i18n="aiResult">AI result</span><button id="applyAIResult" class="mini-btn" data-i18n="applyToMap">Apply to map</button></div>
-            <pre id="aiResultText"></pre>
-          </div>
-          <div class="modal-footer">
-            <div class="ai-note" data-i18n="commercialNote">Use a model/provider whose license and service terms permit your commercial use.</div>
-            <button class="primary-action" id="runAIBtn"><span>✦</span><span data-i18n="runAI">Run AI</span></button>
-          </div>
-        </div>
-      </div>
+      <div class="ai-layout"><div class="ai-task-list" id="aiTaskList"></div><div class="ai-workbench">
+        <div class="field"><span data-i18n="aiPrompt">Prompt</span><textarea id="aiPrompt" rows="7" placeholder="What do you want to map?"></textarea></div>
+        <div class="ai-config-row"><label class="field"><span data-i18n="provider">Provider</span><select id="aiProvider"><option value="local">Local Microsoft Phi</option><option value="compatible">OpenAI-compatible</option><option value="mistral">Mistral-compatible</option></select></label><label class="field"><span data-i18n="model">Model</span><input id="aiModel" value="Phi-3-mini-4k-instruct" /></label></div>
+        <div class="ai-config-row"><label class="field grow"><span data-i18n="endpoint">Endpoint</span><input id="aiEndpoint" value="http://127.0.0.1:38741/v1/chat/completions" /></label><label class="field api-key"><span data-i18n="apiKey">API key</span><input id="aiKey" type="password" placeholder="Optional for local" /></label></div>
+        <div class="ai-output hidden" id="aiOutput"><div class="output-head"><span data-i18n="aiResult">AI result</span><button id="applyAIResult" class="mini-btn" data-i18n="applyToMap">Apply to map</button></div><pre id="aiResultText"></pre></div>
+        <div class="modal-footer"><div class="ai-note">AI can be disabled anytime. Local mode runs on-device when the bundled engine is installed.</div><button class="primary-action" id="runAIBtn"><span>✦</span><span data-i18n="runAI">Run AI</span></button></div>
+      </div></div>
     </section>
 
     <section class="modal hidden" id="exportModal">
