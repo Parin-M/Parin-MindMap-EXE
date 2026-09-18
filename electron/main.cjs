@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const fs = require("fs");
 const path = require("path");
+const { ensureLocalAI, stopLocalAI, PORT } = require("./ai-local.cjs");
 
 let mainWindow;
 
@@ -134,9 +135,14 @@ function requestAI(urlString, apiKey, body) {
 }
 
 ipcMain.handle("ai:request", async (_event, payload) => {
+  const local = payload?.local !== false;
   const endpoint = String(payload?.endpoint || "").trim();
-  if (!endpoint) throw new Error("AI endpoint is not configured.");
   const body = payload?.body && typeof payload.body === "object" ? payload.body : {};
+  if (local) {
+    await ensureLocalAI();
+    return await requestAI("http://127.0.0.1:" + PORT + "/v1/chat/completions", "", body);
+  }
+  if (!endpoint) throw new Error("AI endpoint is not configured.");
   return await requestAI(endpoint, String(payload?.apiKey || "").trim(), body);
 });
 
@@ -144,6 +150,8 @@ ipcMain.handle("app:open-external", async (_event, url) => {
   if (/^https?:/i.test(url)) await shell.openExternal(url);
   return true;
 });
+
+process.on("exit", () => { stopLocalAI(); });
 
 app.whenReady().then(() => {
   createWindow();
