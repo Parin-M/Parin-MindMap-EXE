@@ -33,6 +33,9 @@
         <button class="nav-btn" id="addSiblingBtn"><span>↳</span><span data-i18n="addSibling">Add sibling</span><kbd>Enter</kbd></button>
         <button class="nav-btn" id="deleteNodeBtn"><span>⌫</span><span data-i18n="deleteNode">Delete</span><kbd>Del</kbd></button>
         <button class="nav-btn" id="focusBtn"><span>⌖</span><span data-i18n="focusSelection">Focus selection</span></button>
+<button class="nav-btn" id="collapseAllBtn"><span>−</span><span data-i18n="collapseAll">Collapse all</span></button>
+<button class="nav-btn" id="expandAllBtn"><span>＋</span><span data-i18n="expandAll">Expand all</span></button>
+<button class="nav-btn" id="duplicateNodeBtn"><span>⧉</span><span data-i18n="duplicateNode">Duplicate branch</span></button>
       </div>
 
       <div class="sidebar-spacer"></div>
@@ -136,6 +139,10 @@
             <button class="ai-action" data-ai-action="expand">✦ <span data-i18n="expandNode">Expand this node</span></button>
             <button class="ai-action" data-ai-action="rewrite">✦ <span data-i18n="rewriteNode">Rewrite clearly</span></button>
             <button class="ai-action" data-ai-action="questions">✦ <span data-i18n="generateQuestions">Generate questions</span></button>
+<button class="ai-action" data-ai-action="summary">✦ <span>Summarize branch</span></button>
+<button class="ai-action" data-ai-action="swot">✦ <span>SWOT analysis</span></button>
+<button class="ai-action" data-ai-action="risk">✦ <span>Risk analysis</span></button>
+<button class="ai-action" data-ai-action="plan">✦ <span>Action plan</span></button>
           </div>
 
           <div class="mini-divider"></div>
@@ -193,6 +200,12 @@
         <button data-copilot-task="expand">Expand selection</button>
         <button data-copilot-task="gaps">Find gaps</button>
         <button data-copilot-task="plan">Make an action plan</button>
+<button data-copilot-task="summary">Summarize</button>
+<button data-copilot-task="swot">SWOT</button>
+<button data-copilot-task="study">Study plan</button>
+<button data-copilot-task="roadmap">Roadmap</button>
+<button data-copilot-task="requirements">Requirements</button>
+<button data-copilot-task="okr">OKRs</button>
       </div>
       <div class="copilot-input-wrap">
         <textarea id="copilotInput" rows="3" placeholder="Ask Parin Copilot…"></textarea>
@@ -213,7 +226,7 @@
       </div>
       <div class="ai-layout"><div class="ai-task-list" id="aiTaskList"></div><div class="ai-workbench">
         <div class="field"><span data-i18n="aiPrompt">Prompt</span><textarea id="aiPrompt" rows="7" placeholder="What do you want to map?"></textarea></div>
-        <div class="ai-config-row"><label class="field"><span data-i18n="provider">Provider</span><select id="aiProvider"><option value="local">Local Microsoft Phi</option><option value="compatible">OpenAI-compatible</option><option value="mistral">Mistral-compatible</option></select></label><label class="field"><span data-i18n="model">Model</span><input id="aiModel" value="Phi-3-mini-4k-instruct" /></label></div>
+        <div class="ai-config-row"><label class="field"><span data-i18n="provider">Provider</span><select id="aiProvider"><option value="local">Parin Local AI (Harrier + Gemma 3)</option><option value="compatible">OpenAI-compatible</option></select></label><label class="field"><span data-i18n="model">Model</span><input id="aiModel" value="parin-gemma3-assistant" /></label></div>
         <div class="ai-config-row"><label class="field grow"><span data-i18n="endpoint">Endpoint</span><input id="aiEndpoint" value="http://127.0.0.1:38741/v1/chat/completions" /></label><label class="field api-key"><span data-i18n="apiKey">API key</span><input id="aiKey" type="password" placeholder="Optional for local" /></label></div>
         <div class="ai-output hidden" id="aiOutput"><div class="output-head"><span data-i18n="aiResult">AI result</span><button id="applyAIResult" class="mini-btn" data-i18n="applyToMap">Apply to map</button></div><pre id="aiResultText"></pre></div>
         <div class="modal-footer"><div class="ai-note">AI can be disabled anytime. Local mode runs on-device when the bundled engine is installed.</div><button class="primary-action" id="runAIBtn"><span>✦</span><span data-i18n="runAI">Run AI</span></button></div>
@@ -282,7 +295,21 @@
           <div class="panel-kicker" data-i18n="appearance">Appearance</div>
           <div class="field-row">
             <label class="field"><span data-i18n="theme">Theme</span>
-              <select id="themeSelect"><option value="aurora">Aurora</option><option value="graphite">Graphite</option><option value="paper">Paper</option></select>
+              <select id="themeSelect">
+    <option value="aurora">Aurora</option>
+    <option value="midnight">Midnight</option>
+    <option value="ocean">Ocean</option>
+    <option value="forest">Forest</option>
+    <option value="sunset">Sunset</option>
+    <option value="violet">Violet</option>
+    <option value="graphite">Graphite</option>
+    <option value="paper">Paper</option>
+    <option value="rose">Rose</option>
+    <option value="cyber">Cyber</option>
+    <option value="nordic">Nordic</option>
+    <option value="emerald">Emerald</option>
+    <option value="mono">Mono</option>
+  </select>
             </label>
             <label class="field"><span data-i18n="defaultLayout">Default layout</span>
               <select id="layoutSelect"><option value="radial">Radial</option><option value="right">Right tree</option><option value="left">Left tree</option><option value="down">Bottom tree</option></select>
@@ -300,12 +327,31 @@
         <div class="settings-section">
           <div class="panel-kicker" data-i18n="aiConnection">AI connection</div>
           <div class="field-row">
-            <label class="field"><span data-i18n="provider">Provider</span><select id="settingsProvider"><option value="local">Local llama.cpp</option><option value="compatible">OpenAI-compatible</option><option value="mistral">Mistral-compatible</option></select></label>
+            <label class="field"><span data-i18n="provider">Provider</span><select id="settingsProvider"><option value="local">Parin Local AI (Harrier + Gemma 3)</option><option value="compatible">OpenAI-compatible</option></select></label>
             <label class="field"><span data-i18n="model">Model</span><input id="settingsModel" /></label>
           </div>
           <label class="field"><span data-i18n="endpoint">Endpoint</span><input id="settingsEndpoint" /></label>
           <label class="field"><span data-i18n="apiKey">API key</span><input id="settingsKey" type="password" /></label>
           <p class="fine-print" data-i18n="aiLicenseHint">Parin MindMap does not bundle a third-party model in this build. Choose a model with commercial-use rights and keep its license notice with your distribution.</p>
+        </div>
+
+        <div class="settings-section">
+          <div class="panel-kicker" data-i18n="about">About Parin MindMap</div>
+          <div class="about-card">
+            <div class="about-brand-row">
+              <img src="../assets/logo.svg" alt="Parin MindMap" class="about-logo" />
+              <div>
+                <strong>Parin MindMap</strong>
+                <span>Modern visual thinking workspace</span>
+              </div>
+            </div>
+            <p class="about-credit" data-i18n="aboutBuiltBy">This software was built by Parin Mashalchian with the help and collaboration of ChatGPT.</p>
+            <div class="about-features">
+              <span>Mind mapping</span><span>Local AI Copilot</span><span>Supervised Agent</span><span>13 themes</span>
+              <span>14 languages</span><span>PDF / SVG / Markdown</span><span>Undo & redo</span><span>Offline-first</span>
+            </div>
+            <button class="secondary-btn about-github" id="aboutGithubBtn"><span>↗</span><span data-i18n="openGithub">Open project on GitHub</span></button>
+          </div>
         </div>
         <div class="modal-footer">
           <span class="fine-print">Parin MindMap 0.1.0 • Windows 7+ target</span>
