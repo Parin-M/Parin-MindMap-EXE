@@ -59,7 +59,7 @@
       },
       {
         "from": "runtime/models/Phi-3-mini-4k-instruct-q4.gguf",
-        "to": "ai/models/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf"
+        "to": "ai/models/Phi-3-mini-4k-instruct-q4.gguf"
       },
       {
         "from": "runtime/ai-notice.txt",
