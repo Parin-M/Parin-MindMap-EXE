@@ -443,6 +443,39 @@
 
   function openModal(id){el("overlay").classList.remove("hidden");el(id).classList.remove("hidden");}
   function closeModal(id){el(id).classList.add("hidden"); if($all(".modal:not(.hidden)").length===0)el("overlay").classList.add("hidden");}
+  function setAIEnabled(enabled){
+    state.aiEnabled=Boolean(enabled);
+    localStorage.setItem("parin.aiEnabled",String(state.aiEnabled));
+    document.body.classList.toggle("ai-disabled",!state.aiEnabled);
+    const status=el("copilotStatus");
+    if(status){
+      status.classList.toggle("off",!state.aiEnabled);
+      status.innerHTML='<span class="status-dot"></span><span>'+ (state.aiEnabled ? "AI is enabled" : "AI is disabled") +'</span>';
+    }
+    const toggle=el("aiToggleBtn");
+    if(toggle){toggle.textContent=state.aiEnabled?"●":"○";toggle.title=state.aiEnabled?"Disable AI":"Enable AI";}
+    $all("[data-ai-action]").forEach(b=>b.disabled=!state.aiEnabled);
+  }
+  function openCopilot(){
+    el("copilotPanel").classList.remove("hidden");
+    updateCopilotContext();
+    setAIEnabled(state.aiEnabled);
+  }
+  function closeCopilot(){el("copilotPanel").classList.add("hidden");}
+  function updateCopilotContext(){
+    const n=findNode(state.selected)?.node||state.root;
+    const ctx=el("copilotContext");
+    if(ctx) ctx.textContent=n?.label||"Current map";
+  }
+  function appendCopilot(role,text){
+    const chat=el("copilotChat");
+    if(!chat) return;
+    const msg=document.createElement("div");
+    msg.className="copilot-msg "+role;
+    msg.textContent=text;
+    chat.appendChild(msg);
+    chat.scrollTop=chat.scrollHeight;
+  }
 
   function showTab(tab){
     if(tab==="ai") openModal("aiModal");
