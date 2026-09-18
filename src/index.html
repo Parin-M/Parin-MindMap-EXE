@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Parin MindMap</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="../assets/logo.svg" alt="Parin MindMap" class="brand-logo" />
+        <div>
+          <div class="brand-name">Parin MindMap</div>
+          <div class="brand-sub">Think in structure.</div>
+        </div>
+      </div>
+
+      <button class="primary-action" id="newMapBtn"><span class="icon">＋</span><span data-i18n="newMap">New map</span></button>
+
+      <nav class="nav-section">
+        <div class="nav-label" data-i18n="workspace">Workspace</div>
+        <button class="nav-btn active" data-tab="map"><span>◈</span><span data-i18n="mindMap">Mind map</span></button>
+        <button class="nav-btn" data-tab="ai"><span>✦</span><span data-i18n="aiStudio">AI Studio</span></button>
+        <button class="nav-btn" data-tab="export"><span>⇩</span><span data-i18n="export">Export</span></button>
+      </nav>
+
+      <div class="nav-section compact">
+        <div class="nav-label" data-i18n="quickTools">Quick tools</div>
+        <button class="nav-btn" id="addChildBtn"><span>＋</span><span data-i18n="addChild">Add child</span><kbd>Tab</kbd></button>
+        <button class="nav-btn" id="addSiblingBtn"><span>↳</span><span data-i18n="addSibling">Add sibling</span><kbd>Enter</kbd></button>
+        <button class="nav-btn" id="deleteNodeBtn"><span>⌫</span><span data-i18n="deleteNode">Delete</span><kbd>Del</kbd></button>
+        <button class="nav-btn" id="focusBtn"><span>⌖</span><span data-i18n="focusSelection">Focus selection</span></button>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="status-card">
+        <div class="status-dot"></div>
+        <div>
+          <div class="status-title" data-i18n="localFirst">Local-first</div>
+          <div class="status-copy" data-i18n="localFirstCopy">Your map stays on this device.</div>
+        </div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="nav-btn" id="settingsBtn"><span>⚙</span><span data-i18n="settings">Settings</span></button>
+        <select id="languageSelect" class="lang-select" aria-label="Language"></select>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="file-meta">
+          <div class="crumbs"><span class="crumb-muted">Parin MindMap</span><span>/</span><strong id="mapTitle">Untitled map</strong></div>
+          <div class="save-state" id="saveState">Saved locally</div>
+        </div>
+        <div class="top-actions">
+          <button class="ghost-btn" id="openBtn"><span>↥</span><span data-i18n="open">Open</span></button>
+          <button class="ghost-btn" id="saveBtn"><span>⇩</span><span data-i18n="save">Save</span></button>
+          <div class="separator"></div>
+          <button class="square-btn" id="undoBtn" title="Undo">↶</button>
+          <button class="square-btn" id="redoBtn" title="Redo">↷</button>
+          <div class="separator"></div>
+          <button class="ai-top-btn" id="aiTopBtn"><span class="sparkle">✦</span> <span data-i18n="askAI">Ask AI</span></button>
+          <button class="square-btn" id="moreBtn" title="More">⋯</button>
+        </div>
+      </header>
+
+      <section class="canvas-wrap">
+        <div class="canvas-toolbar">
+          <div class="toolbar-group">
+            <button class="tool-btn" id="layoutBtn"><span>⌘</span><span data-i18n="layout">Layout</span></button>
+            <button class="tool-btn" id="themeBtn"><span>◐</span><span data-i18n="theme">Theme</span></button>
+            <button class="tool-btn" id="notesBtn"><span>▤</span><span data-i18n="notes">Notes</span></button>
+          </div>
+          <div class="toolbar-group">
+            <button class="tool-btn" id="zoomOutBtn">−</button>
+            <span class="zoom-label" id="zoomLabel">100%</span>
+            <button class="tool-btn" id="zoomInBtn">＋</button>
+            <button class="tool-btn" id="fitBtn" data-i18n="fit">Fit</button>
+          </div>
+        </div>
+        <div class="canvas" id="canvas">
+          <svg id="mindmapSvg" class="mindmap-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="canvas-hint" id="canvasHint">
+            <div class="hint-icon">✦</div>
+            <div class="hint-title" data-i18n="canvasHintTitle">Start with one thought.</div>
+            <div class="hint-copy" data-i18n="canvasHintCopy">Press Tab to branch, Enter to create a sibling, or ask AI to build the structure.</div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="inspector" id="inspector">
+        <div class="inspector-head">
+          <div>
+            <div class="panel-kicker" data-i18n="selectedNode">Selected node</div>
+            <h2 id="inspectorTitle">Start here</h2>
+          </div>
+          <button class="icon-btn" id="closeInspector">×</button>
+        </div>
+        <div class="inspector-body">
+          <label class="field">
+            <span data-i18n="nodeText">Node text</span>
+            <input id="nodeText" type="text" />
+          </label>
+          <label class="field">
+            <span data-i18n="nodeNote">Note</span>
+            <textarea id="nodeNote" rows="5" placeholder="Add context, sources, or next steps…"></textarea>
+          </label>
+          <div class="field-row">
+            <label class="field">
+              <span data-i18n="branchColor">Branch color</span>
+              <input id="nodeColor" type="color" value="#7c7cff" />
+            </label>
+            <label class="field">
+              <span data-i18n="priority">Priority</span>
+              <select id="nodePriority">
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="low">Low</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="inspector-actions">
+            <button class="secondary-btn" id="collapseBtn"><span>⌄</span><span data-i18n="collapse">Collapse</span></button>
+            <button class="danger-btn" id="deleteInspectorBtn"><span data-i18n="delete">Delete</span></button>
+          </div>
+
+          <div class="mini-divider"></div>
+          <div class="panel-kicker" data-i18n="aiActions">AI actions</div>
+          <div class="stack-actions">
+            <button class="ai-action" data-ai-action="expand">✦ <span data-i18n="expandNode">Expand this node</span></button>
+            <button class="ai-action" data-ai-action="rewrite">✦ <span data-i18n="rewriteNode">Rewrite clearly</span></button>
+            <button class="ai-action" data-ai-action="questions">✦ <span data-i18n="generateQuestions">Generate questions</span></button>
+          </div>
+
+          <div class="mini-divider"></div>
+          <div class="stats-grid">
+            <div class="stat"><strong id="nodeCount">0</strong><span data-i18n="nodes">Nodes</span></div>
+            <div class="stat"><strong id="depthCount">0</strong><span data-i18n="depth">Depth</span></div>
+            <div class="stat"><strong id="branchCount">0</strong><span data-i18n="branches">Branches</span></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <div class="overlay hidden" id="overlay"></div>
+
+    <section class="modal hidden" id="aiModal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-kicker">PARIN AI</div>
+          <h2 data-i18n="aiStudio">AI Studio</h2>
+          <p data-i18n="aiModalCopy">Turn rough ideas into structured thinking.</p>
+        </div>
+        <button class="icon-btn" data-close-modal="aiModal">×</button>
+      </div>
+      <div class="ai-layout">
+        <div class="ai-task-list" id="aiTaskList"></div>
+        <div class="ai-workbench">
+          <div class="field">
+            <span data-i18n="aiPrompt">Prompt</span>
+            <textarea id="aiPrompt" rows="7" placeholder="What do you want to map?"></textarea>
+          </div>
+          <div class="ai-config-row">
+            <label class="field">
+              <span data-i18n="provider">Provider</span>
+              <select id="aiProvider">
+                <option value="local">Local llama.cpp</option>
+                <option value="compatible">OpenAI-compatible</option>
+                <option value="mistral">Mistral-compatible</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="model">Model</span>
+              <input id="aiModel" value="mistral" />
+            </label>
+          </div>
+          <div class="ai-config-row">
+            <label class="field grow">
+              <span data-i18n="endpoint">Endpoint</span>
+              <input id="aiEndpoint" value="http://127.0.0.1:8080/v1/chat/completions" />
+            </label>
+            <label class="field api-key">
+              <span data-i18n="apiKey">API key</span>
+              <input id="aiKey" type="password" placeholder="Optional for local" />
+            </label>
+          </div>
+          <div class="ai-output hidden" id="aiOutput">
+            <div class="output-head"><span data-i18n="aiResult">AI result</span><button id="applyAIResult" class="mini-btn" data-i18n="applyToMap">Apply to map</button></div>
+            <pre id="aiResultText"></pre>
+          </div>
+          <div class="modal-footer">
+            <div class="ai-note" data-i18n="commercialNote">Use a model/provider whose license and service terms permit your commercial use.</div>
+            <button class="primary-action" id="runAIBtn"><span>✦</span><span data-i18n="runAI">Run AI</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="modal hidden" id="exportModal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-kicker">PARIN EXPORT</div>
+          <h2 data-i18n="export">Export</h2>
+          <p data-i18n="exportCopy">Create polished documents from your map.</p>
+        </div>
+        <button class="icon-btn" data-close-modal="exportModal">×</button>
+      </div>
+      <div class="export-grid">
+        <div class="export-preview" id="exportPreview"></div>
+        <div class="export-options">
+          <div class="export-tabs">
+            <button class="export-tab active" data-export-tab="pdf">PDF</button>
+            <button class="export-tab" data-export-tab="json">ParinMap</button>
+            <button class="export-tab" data-export-tab="markdown">Markdown</button>
+            <button class="export-tab" data-export-tab="svg">SVG</button>
+          </div>
+          <div id="pdfOptions">
+            <div class="field-row">
+              <label class="field"><span data-i18n="paperSize">Paper size</span>
+                <select id="pdfSize"><option value="A4">A4</option><option value="A3">A3</option><option value="Letter">Letter</option><option value="Legal">Legal</option></select>
+              </label>
+              <label class="field"><span data-i18n="orientation">Orientation</span>
+                <select id="pdfOrientation"><option value="landscape">Landscape</option><option value="portrait">Portrait</option></select>
+              </label>
+            </div>
+            <div class="field-row">
+              <label class="field"><span data-i18n="margin">Margin</span>
+                <select id="pdfMargin"><option value="small">Small</option><option value="normal">Normal</option><option value="wide">Wide</option></select>
+              </label>
+              <label class="field"><span data-i18n="quality">Quality</span>
+                <select id="pdfQuality"><option value="standard">Standard</option><option value="presentation">Presentation</option></select>
+              </label>
+            </div>
+            <div class="check-grid">
+              <label><input id="pdfBackground" type="checkbox" checked /><span data-i18n="printBackground">Print background</span></label>
+              <label><input id="pdfTitle" type="checkbox" checked /><span data-i18n="includeTitle">Include title</span></label>
+              <label><input id="pdfLegend" type="checkbox" checked /><span data-i18n="includeLegend">Include legend</span></label>
+              <label><input id="pdfFooter" type="checkbox" checked /><span data-i18n="includeFooter">Include footer</span></label>
+            </div>
+          </div>
+          <div class="export-info" id="exportInfo"></div>
+          <button class="primary-action wide" id="exportNowBtn"><span>⇩</span><span data-i18n="exportNow">Export now</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="modal hidden" id="settingsModal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-kicker">PARIN MINDMAP</div>
+          <h2 data-i18n="settings">Settings</h2>
+          <p data-i18n="settingsCopy">Tune the workspace and AI connection.</p>
+        </div>
+        <button class="icon-btn" data-close-modal="settingsModal">×</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section">
+          <div class="panel-kicker" data-i18n="appearance">Appearance</div>
+          <div class="field-row">
+            <label class="field"><span data-i18n="theme">Theme</span>
+              <select id="themeSelect"><option value="aurora">Aurora</option><option value="graphite">Graphite</option><option value="paper">Paper</option></select>
+            </label>
+            <label class="field"><span data-i18n="defaultLayout">Default layout</span>
+              <select id="layoutSelect"><option value="radial">Radial</option><option value="right">Right tree</option><option value="left">Left tree</option><option value="down">Bottom tree</option></select>
+            </label>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="panel-kicker" data-i18n="language">Language</div>
+          <label class="field"><span data-i18n="interfaceLanguage">Interface language</span><select id="settingsLanguage"></select></label>
+        </div>
+        <div class="settings-section">
+          <div class="panel-kicker" data-i18n="aiConnection">AI connection</div>
+          <div class="field-row">
+            <label class="field"><span data-i18n="provider">Provider</span><select id="settingsProvider"><option value="local">Local llama.cpp</option><option value="compatible">OpenAI-compatible</option><option value="mistral">Mistral-compatible</option></select></label>
+            <label class="field"><span data-i18n="model">Model</span><input id="settingsModel" /></label>
+          </div>
+          <label class="field"><span data-i18n="endpoint">Endpoint</span><input id="settingsEndpoint" /></label>
+          <label class="field"><span data-i18n="apiKey">API key</span><input id="settingsKey" type="password" /></label>
+          <p class="fine-print" data-i18n="aiLicenseHint">Parin MindMap does not bundle a third-party model in this build. Choose a model with commercial-use rights and keep its license notice with your distribution.</p>
+        </div>
+        <div class="modal-footer">
+          <span class="fine-print">Parin MindMap 0.1.0 • Windows 7+ target</span>
+          <button class="primary-action" id="saveSettingsBtn"><span>✓</span><span data-i18n="saveChanges">Save changes</span></button>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast hidden" id="toast"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
