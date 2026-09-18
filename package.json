@@ -1,0 +1,53 @@
+{
+  "name": "parin-mindmap",
+  "version": "0.1.0",
+  "description": "Parin MindMap — a professional, multilingual, AI-ready mind mapping desktop application.",
+  "main": "electron/main.cjs",
+  "author": "Parin.M",
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win7": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "22.3.27",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.parin.mindmap",
+    "productName": "Parin MindMap",
+    "artifactName": "Parin-MindMap-${version}-${arch}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "Parin-MindMap-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Parin MindMap",
+      "runAfterFinish": true
+    }
+  }
+}
