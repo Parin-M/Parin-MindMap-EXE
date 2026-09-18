@@ -962,7 +962,19 @@ ${context}`;
       el("copilotInput").value=prompts[b.dataset.copilotTask]||"";
       el("copilotInput").focus();
     }));
-    el("copilotSettings").addEventListener("click",()=>openModal("settingsModal"));el("runAIBtn").addEventListener("click",runAI);el("applyAIResult").addEventListener("click",applyAIResult);
+    el("agentMode").value=state.agentMode;
+    el("agentMode").addEventListener("change",e=>{
+      state.agentMode=e.target.value;
+      localStorage.setItem("parin.agentMode",state.agentMode);
+    });
+    el("agentPlanBtn").addEventListener("click",()=>proposeAgentPlan(el("copilotInput").value.trim()||"Review the current map and suggest safe improvements."));
+    el("agentStopBtn").addEventListener("click",()=>{state.agentRunning=false;el("agentStopBtn").disabled=true;toast("Agent stopped");});
+    el("clearAgentPlan").addEventListener("click",clearAgentPlan);
+    el("rejectAgentBtn").addEventListener("click",()=>{clearAgentPlan();toast("Agent plan rejected");});
+    el("approveSelectedBtn").addEventListener("click",()=>applyApprovedAgentActions(state.agentMode));
+    el("approveAllBtn").addEventListener("click",()=>applyApprovedAgentActions("batch"));
+    el("copilotSettings").addEventListener("click",()=>openModal("settingsModal"));
+    el("settingsAIEnabled").addEventListener("change",e=>setAIEnabled(e.target.checked));el("runAIBtn").addEventListener("click",runAI);el("applyAIResult").addEventListener("click",applyAIResult);
     el("settingsBtn").addEventListener("click",()=>{
       el("settingsAIEnabled").checked=state.aiEnabled;
       openModal("settingsModal");
