@@ -764,14 +764,14 @@ ${context}`;
     };
     el("aiProvider").value=s.provider;el("aiModel").value=s.model;el("aiEndpoint").value=s.endpoint;el("aiKey").value=s.key;
     el("settingsProvider").value=s.provider;el("settingsModel").value=s.model;el("settingsEndpoint").value=s.endpoint;el("settingsKey").value=s.key;
-    el("themeSelect").value=state.theme;el("layoutSelect").value=state.layout;
+    el("themeSelect").value=state.theme;el("layoutSelect").value=state.layout; if(el("settingsAIEnabled")) el("settingsAIEnabled").checked=state.aiEnabled;
   }
 
   function saveSettings(){
     const s={provider:el("settingsProvider").value,model:el("settingsModel").value.trim()||"mistral",endpoint:el("settingsEndpoint").value.trim(),key:el("settingsKey").value};
     localStorage.setItem("parin.ai",JSON.stringify(s));
     el("aiProvider").value=s.provider;el("aiModel").value=s.model;el("aiEndpoint").value=s.endpoint;el("aiKey").value=s.key;
-    setTheme(el("themeSelect").value);setLayout(el("layoutSelect").value);setLanguage(el("settingsLanguage").value);
+    setTheme(el("themeSelect").value);setLayout(el("layoutSelect").value);setLanguage(el("settingsLanguage").value);setAIEnabled(el("settingsAIEnabled").checked);
     closeModal("settingsModal");toast("Settings saved");
   }
 
@@ -797,7 +797,10 @@ ${context}`;
       el("copilotInput").focus();
     }));
     el("copilotSettings").addEventListener("click",()=>openModal("settingsModal"));el("runAIBtn").addEventListener("click",runAI);el("applyAIResult").addEventListener("click",applyAIResult);
-    el("settingsBtn").addEventListener("click",()=>openModal("settingsModal"));el("saveSettingsBtn").addEventListener("click",saveSettings);
+    el("settingsBtn").addEventListener("click",()=>{
+      el("settingsAIEnabled").checked=state.aiEnabled;
+      openModal("settingsModal");
+    });el("saveSettingsBtn").addEventListener("click",saveSettings);
     el("languageSelect").addEventListener("change",e=>setLanguage(e.target.value));el("settingsLanguage").addEventListener("change",e=>setLanguage(e.target.value));
     el("themeBtn").addEventListener("click",()=>{setTheme(state.theme==="aurora"?"graphite":state.theme==="graphite"?"paper":"aurora")});
     el("layoutBtn").addEventListener("click",()=>{const n={radial:"right",right:"left",left:"down",down:"radial"};setLayout(n[state.layout]||"radial")});
